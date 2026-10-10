@@ -5,7 +5,7 @@ Anchor program ของ **blockchain-games-hub** ที่ถือและแ
 - เกม CPI มา `open_pool` / `close_pool` / `settle` / `cancel` (ยืนยันด้วย PDA signer ของเกม)
 - **Boost** — ใครก็เติม token / NFT (mint ใน allowlist) เข้า pool ที่ยังเปิด พร้อมข้อความ
 - **settle → claim** — settle บันทึกว่าใครได้เท่าไร, claim โอนจริงทีละคน (relayer กดแทนได้, ไม่มี deadline)
-- platform fee 5% (ปรับได้) เฉพาะ SOL + token ที่แบ่งได้ · ไม่หัก NFT
+- platform fee 1% (ปรับได้) เฉพาะ SOL + token ที่แบ่งได้ · ไม่หัก NFT
 
 | | |
 |---|---|
