@@ -89,7 +89,7 @@ fn disc(name: &str) -> [u8; 8] {
 
 pub fn put(svm: &mut LiteSVM, addr: Pubkey, owner: Pubkey, data: Vec<u8>) {
     let lamports = svm.minimum_balance_for_rent_exemption(data.len());
-    svm.set_account(addr, Account { lamports, data, owner, executable: false, rent_epoch: 0 }.into()).unwrap();
+    svm.set_account(addr, Account { lamports, data, owner, executable: false, rent_epoch: 0 }).unwrap();
 }
 
 pub fn put_game_entry(svm: &mut LiteSVM, suspended: bool) {
@@ -146,7 +146,7 @@ pub fn allow_mint(svm: &mut LiteSVM, payer: &Keypair, mint: &Pubkey, tp: &Pubkey
 
 /// platform-core `disallow_mint` (closes the AllowedMint; Treasury ATA stays).
 pub fn disallow_mint(svm: &mut LiteSVM, mint: &Pubkey) {
-    svm.set_account(allowed_mint_pda(mint), Account::default().into()).unwrap();
+    svm.set_account(allowed_mint_pda(mint), Account::default()).unwrap();
 }
 
 // ─────────────────── world ───────────────────
@@ -197,7 +197,7 @@ pub fn lamports(svm: &LiteSVM, a: &Pubkey) -> u64 {
     svm.get_account(a).map_or(0, |x| x.lamports)
 }
 pub fn gone(svm: &LiteSVM, a: &Pubkey) -> bool {
-    svm.get_account(a).map_or(true, |x| x.data.is_empty() && x.lamports == 0)
+    svm.get_account(a).is_none_or(|x| x.data.is_empty() && x.lamports == 0)
 }
 pub fn token_balance(svm: &LiteSVM, a: &Pubkey) -> u64 {
     svm.get_account(a).map_or(0, |x| StateWithExtensions::<TokenAccountState>::unpack(&x.data).unwrap().base.amount)
