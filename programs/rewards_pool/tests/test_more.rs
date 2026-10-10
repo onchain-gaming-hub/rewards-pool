@@ -282,3 +282,62 @@ fn same_mint_base_and_boost_without_rank_one_settles_cleanly() {
     ok(send(&mut w.svm, &[close_token_asset(16, &point, &TOKEN, &game_authority()), close_pool(16)], &[&w.payer]));
     assert!(gone(&w.svm, &vault) && gone(&w.svm, &pool_pda(16)));
 }
+
+// ───────── independent review round 2 additions ─────────
+
+#[test]
+fn claim_sol_to_a_program_owned_wallet() {
+    let mut w = world();
+    let squads_like = Pubkey::new_unique();
+    let rent = w.svm.minimum_balance_for_rent_exemption(0);
+    w.svm.set_account(squads_like, solana_account::Account { lamports: rent, data: vec![], owner: Pubkey::new_unique(), executable: false, rent_epoch: 0 }).unwrap();
+    ok(send(&mut w.svm, &[start_match_sol(17, vec![1_000_000])], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(17, vec![Some(squads_like)])], &[&w.payer])), 0);
+    ok(send(&mut w.svm, &[claim_sol(17, 0, &squads_like)], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &squads_like), rent + 1_000_000, "UncheckedAccount destination works for program-owned wallets");
+}
+
+#[test]
+fn pausable_vault_closes_after_flow_with_stray() {
+    let mut w = world();
+    let (a, booster) = (Keypair::new(), funded(&mut w.svm));
+    let mint = create_mint(&mut w.svm, &w.payer, &anchor_spl::token_2022::ID, 6, &[anchor_spl::token_2022::spl_token_2022::extension::ExtensionType::Pausable]);
+    allow_mint(&mut w.svm, &w.payer, &mint, &anchor_spl::token_2022::ID, 6, true);
+    let t22 = anchor_spl::token_2022::ID;
+    let b_ata = create_ata(&mut w.svm, &w.payer, &booster.pubkey(), &mint, &t22);
+    mint_to(&mut w.svm, &w.payer, &mint, &b_ata, &t22, 1_000);
+    create_ata(&mut w.svm, &w.payer, &a.pubkey(), &mint, &t22);
+    ok(send(&mut w.svm, &[start_match(18)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(18, &booster.pubkey(), &mint, &t22, 1_000, "")], &[&booster]));
+    let vault = vault_pda(&asset_pda(&pool_pda(18), &mint));
+    mint_to(&mut w.svm, &w.payer, &mint, &vault, &t22, 5); // stray
+    assert_eq!(outcome(send(&mut w.svm, &[finish(18, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    ok(send(&mut w.svm, &[collect_fee_token(18, &mint, &t22), claim_token(18, 0, &a.pubkey(), &mint, &t22), close_receipt(18, &booster.pubkey(), &mint)], &[&w.payer]));
+    ok(send(&mut w.svm, &[close_token_asset(18, &mint, &t22, &booster.pubkey()), close_pool(18)], &[&w.payer]));
+    assert!(gone(&w.svm, &vault), "170-byte PausableAccount vault burns stray and closes");
+}
+
+#[test]
+fn expire_refund_close_then_game_settle_is_noop_closed() {
+    let mut w = world();
+    let booster = funded(&mut w.svm);
+    set_time(&mut w.svm, 9_000_000);
+    ok(send(&mut w.svm, &[start_match(19)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_sol(19, &booster.pubkey(), SOL / 100, "")], &[&booster]));
+    set_time(&mut w.svm, 9_000_000 + 7 * 86_400);
+    ok(send(&mut w.svm, &[expire(19), refund_sol(19, &booster.pubkey()), close_sol_asset(19, &booster.pubkey()), close_pool(19)], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(19, vec![Some(booster.pubkey())])], &[&w.payer])), 13, "NoOp(Closed) — never errors in the game's tx");
+}
+
+#[test]
+fn unpayable_winner_keys_are_treated_as_none() {
+    let mut w = world();
+    let c = Keypair::new();
+    ok(send(&mut w.svm, &[start_match_sol(20, vec![1_000_000, 1_000_000, 1_000_000])], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(20, vec![Some(Pubkey::default()), Some(pool_pda(20)), Some(c.pubkey())])], &[&w.payer])), 0);
+    assert_eq!(pool(&w.svm, 20).winners, vec![None, None, Some(c.pubkey())]);
+    ok(send(&mut w.svm, &[claim_sol(20, 2, &c.pubkey()), return_base_sol(20), close_sol_asset(20, &game_authority()), close_pool(20)], &[&w.payer]));
+    // Only unpayable keys → R13 cancel.
+    ok(send(&mut w.svm, &[start_match(21)], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(21, vec![Some(Pubkey::default())])], &[&w.payer])), 21);
+}

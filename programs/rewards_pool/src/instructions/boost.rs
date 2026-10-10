@@ -24,7 +24,7 @@ fn record(
 ) -> Result<()> {
     if asset.version == 0 {
         require!(pool.boost_asset_count < MAX_BOOST_ASSETS, RewardsError::TooManyAssets);
-        pool.boost_asset_count += 1;
+        pool.boost_asset_count = pool.boost_asset_count.checked_add(1).ok_or(RewardsError::MathOverflow)?;
         pool.open_assets = pool.open_assets.checked_add(1).ok_or(RewardsError::MathOverflow)?;
         asset.rent_payer = booster;
         asset.match_pool = pool_key;
@@ -84,7 +84,8 @@ pub fn handle_boost_sol(ctx: Context<BoostSol>, amount: u64, message: String) ->
     require!(amount >= MIN_SOL_BOOST, RewardsError::BoostTooSmall);
     // Net of fee must stay receivable by an empty wallet (fee_bps can be up to 20% — C2).
     let fee = logic::fee_on(amount, ctx.accounts.match_pool.fee_bps)?;
-    require!(amount - fee >= logic::min_rent()?, RewardsError::BoostNetBelowRentExempt);
+    let net = amount.checked_sub(fee).ok_or(RewardsError::MathOverflow)?;
+    require!(net >= logic::min_rent()?, RewardsError::BoostNetBelowRentExempt);
 
     // Amount the program moves itself (never a lamport delta: init_if_needed rent would count).
     system_program::transfer(

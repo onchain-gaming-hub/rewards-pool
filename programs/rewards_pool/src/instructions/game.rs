@@ -72,9 +72,16 @@ pub fn handle_settle(ctx: Context<GameCall>, room_id: u64, winners: Vec<Option<P
     if !matches!(pool.status, PoolStatus::Open | PoolStatus::BoostsLocked) {
         return Ok(already(pool.status));
     }
+    let key = ctx.accounts.match_pool.key();
     let mut winners = winners;
     winners.truncate(MAX_WINNERS);
-    let key = ctx.accounts.match_pool.key();
+    // Destinations that can never receive (System Program id, the pool itself) would make
+    // that payout unclaimable forever and block close_pool → treat as "no eligible player".
+    for w in winners.iter_mut() {
+        if matches!(w, Some(k) if *k == Pubkey::default() || *k == key) {
+            *w = None;
+        }
+    }
     let outcome = if winners.iter().all(|w| w.is_none()) {
         // R13: no eligible winner = cancel.
         pool.status = PoolStatus::Cancelled;
