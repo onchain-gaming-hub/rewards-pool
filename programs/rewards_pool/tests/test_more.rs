@@ -336,6 +336,7 @@ fn unpayable_winner_keys_are_treated_as_none() {
     ok(send(&mut w.svm, &[start_match_sol(20, vec![1_000_000, 1_000_000, 1_000_000])], &[&w.payer]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(20, vec![Some(Pubkey::default()), Some(pool_pda(20)), Some(c.pubkey())])], &[&w.payer])), 0);
     assert_eq!(pool(&w.svm, 20).winners, vec![None, None, Some(c.pubkey())]);
+    assert_err(&send(&mut w.svm, &[claim_sol(20, 200, &c.pubkey())], &[&w.payer]), 6013); // index ≥ 32 never reaches the shift
     let g0 = lamports(&w.svm, &game_authority());
     ok(send(&mut w.svm, &[claim_sol(20, 2, &c.pubkey()), return_base_sol(20)], &[&w.payer]));
     assert_eq!(lamports(&w.svm, &game_authority()) - g0, 2_000_000, "two unpayable slots → base back to the game");
@@ -360,4 +361,14 @@ fn claim_before_collect_fee_gives_the_same_result() {
     ok(send(&mut w.svm, &[collect_fee_token(22, &tok, &TOKEN)], &[&w.payer]));
     assert_eq!(token_balance(&w.svm, &ata(&treasury_pda().0, &tok, &TOKEN)), 10);
     ok(send(&mut w.svm, &[close_receipt(22, &booster.pubkey(), &tok), close_token_asset(22, &tok, &TOKEN, &booster.pubkey()), close_pool(22)], &[&w.payer]));
+}
+
+#[test]
+fn sol_pool_asset_as_winner_is_treated_as_none() {
+    let mut w = world();
+    let c = Keypair::new();
+    ok(send(&mut w.svm, &[start_match_sol(23, vec![1_000_000, 1_000_000])], &[&w.payer]));
+    let sol_asset = asset_pda(&pool_pda(23), &Pubkey::default());
+    assert_eq!(outcome(send(&mut w.svm, &[finish(23, vec![Some(sol_asset), Some(c.pubkey())])], &[&w.payer])), 0);
+    assert_eq!(pool(&w.svm, 23).winners, vec![None, Some(c.pubkey())]);
 }

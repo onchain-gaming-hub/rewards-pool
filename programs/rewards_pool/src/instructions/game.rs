@@ -77,8 +77,9 @@ pub fn handle_settle(ctx: Context<GameCall>, room_id: u64, winners: Vec<Option<P
     winners.truncate(MAX_WINNERS);
     // Destinations that can never receive (System Program id, the pool itself) would make
     // that payout unclaimable forever and block close_pool → treat as "no eligible player".
+    let sol_asset = Pubkey::find_program_address(&[crate::constants::POOL_ASSET_SEED, key.as_ref(), Pubkey::default().as_ref()], &crate::ID).0;
     for w in winners.iter_mut() {
-        if matches!(w, Some(k) if *k == Pubkey::default() || *k == key) {
+        if matches!(w, Some(k) if *k == Pubkey::default() || *k == key || *k == sol_asset) {
             *w = None;
         }
     }
