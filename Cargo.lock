@@ -2199,6 +2199,7 @@ dependencies = [
  "anchor-spl",
  "litesvm",
  "mock_game",
+ "solana-account",
  "solana-keypair",
  "solana-message",
  "solana-signer",

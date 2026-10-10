@@ -12,7 +12,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-rewards_pool = "2DmMWR2e3xVtwB5Kjp41QmNh4K8DP8uMXshxxTxwWd7q"
+rewards_pool = "HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW"
 
 [provider]
 cluster = "localnet"

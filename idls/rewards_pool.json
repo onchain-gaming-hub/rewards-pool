@@ -1,5 +1,5 @@
 {
-  "address": "2DmMWR2e3xVtwB5Kjp41QmNh4K8DP8uMXshxxTxwWd7q",
+  "address": "HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW",
   "metadata": {
     "name": "rewards_pool",
     "version": "0.0.1",
@@ -8,10 +8,1282 @@
   },
   "instructions": [
     {
-      "name": "open_pool",
-      "docs": [
-        "§5.1 (no-base variant). `game_authority` signs via CPI AND pays rent (Q-13)."
+      "name": "boost_sol",
+      "discriminator": [
+        110,
+        93,
+        30,
+        154,
+        59,
+        37,
+        34,
+        49
       ],
+      "accounts": [
+        {
+          "name": "booster",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "match_pool",
+          "writable": true
+        },
+        {
+          "name": "pool_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "boost_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  111,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "account",
+                "path": "booster"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "boost_token",
+      "discriminator": [
+        1,
+        201,
+        189,
+        219,
+        247,
+        82,
+        13,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "booster",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "match_pool",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "allowed_mint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  111,
+                  115,
+                  116,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "booster_token",
+          "writable": true
+        },
+        {
+          "name": "pool_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boost_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  111,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "account",
+                "path": "booster"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "cancel",
+      "discriminator": [
+        232,
+        219,
+        223,
+        41,
+        219,
+        236,
+        220,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "game_authority",
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "match_pool",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "CpiOutcome"
+        }
+      }
+    },
+    {
+      "name": "claim_sol",
+      "discriminator": [
+        139,
+        113,
+        179,
+        189,
+        190,
+        30,
+        132,
+        195
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "winner",
+          "docs": [
+            "so program-owned wallets (e.g. Squads) can receive. May be marked signer by the",
+            "client when sent through the relayer."
+          ],
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "claim_token",
+      "discriminator": [
+        116,
+        206,
+        27,
+        191,
+        166,
+        19,
+        0,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner"
+        },
+        {
+          "name": "winner_ata",
+          "docs": [
+            "Must already exist (Q-10) — otherwise use claim_token_with_ata."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "claim_token_with_ata",
+      "discriminator": [
+        163,
+        114,
+        100,
+        216,
+        64,
+        3,
+        132,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Pays the ATA rent — usually the player (F3), may be anyone (crank / platform)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner"
+        },
+        {
+          "name": "winner_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "close_pool",
+      "discriminator": [
+        140,
+        189,
+        209,
+        23,
+        239,
+        62,
+        239,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true,
+          "relations": [
+            "match_pool"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_receipt",
+      "discriminator": [
+        126,
+        254,
+        244,
+        203,
+        124,
+        164,
+        134,
+        89
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true,
+          "relations": [
+            "boost_receipt"
+          ]
+        },
+        {
+          "name": "boost_receipt",
+          "writable": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true,
+          "relations": [
+            "boost_receipt"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_sol_asset",
+      "discriminator": [
+        86,
+        4,
+        188,
+        223,
+        120,
+        184,
+        216,
+        4
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true,
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true,
+          "relations": [
+            "pool_asset"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_token_asset",
+      "discriminator": [
+        227,
+        152,
+        165,
+        244,
+        200,
+        119,
+        24,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true,
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "mut: burning strays reduces supply."
+          ],
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_payer",
+          "writable": true,
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "collect_fee_sol",
+      "discriminator": [
+        124,
+        173,
+        32,
+        197,
+        117,
+        102,
+        189,
+        253
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "collect_fee_token",
+      "discriminator": [
+        193,
+        245,
+        86,
+        78,
+        59,
+        244,
+        222,
+        117
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "treasury_ata",
+          "docs": [
+            "Exists already (platform-core creates it at allow_mint — X3). Never init here."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "expire_pool",
+      "discriminator": [
+        197,
+        132,
+        108,
+        174,
+        19,
+        201,
+        67,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "lock_boosts",
+      "discriminator": [
+        126,
+        61,
+        129,
+        6,
+        225,
+        241,
+        154,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "game_authority",
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "match_pool",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "CpiOutcome"
+        }
+      }
+    },
+    {
+      "name": "open_pool",
       "discriminator": [
         96,
         215,
@@ -26,13 +1298,125 @@
         {
           "name": "game_authority",
           "docs": [
-            "The game's PDA `[b\"game_authority\"]` — signer via CPI and rent payer (Q-13)."
+            "The game's PDA signer (CPI) and rent payer (Q-13). System-owned, holds SOL."
           ],
           "writable": true,
           "signer": true
         },
         {
           "name": "game_program"
+        },
+        {
+          "name": "game_entry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
         },
         {
           "name": "match_pool",
@@ -74,6 +1458,246 @@
         {
           "name": "room_id",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "open_pool_sol",
+      "discriminator": [
+        143,
+        124,
+        56,
+        179,
+        4,
+        48,
+        244,
+        20
+      ],
+      "accounts": [
+        {
+          "name": "game_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "game_entry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "match_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
         },
         {
           "name": "payout_amounts",
@@ -84,118 +1708,446 @@
       ]
     },
     {
-      "name": "poc_classify",
-      "docs": [
-        "§3.4: returns the AssetKind the spec's predicate assigns to `mint`."
-      ],
+      "name": "open_pool_token",
       "discriminator": [
-        140,
-        8,
-        227,
-        88,
-        89,
-        116,
-        227,
-        98
+        70,
+        1,
+        158,
+        148,
+        146,
+        152,
+        139,
+        23
       ],
       "accounts": [
         {
-          "name": "mint"
+          "name": "game_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "game_entry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "match_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "base_mint"
+        },
+        {
+          "name": "allowed_mint",
+          "docs": [
+            "F5: base mint must be allowlisted (extension filter + Treasury ATA exist)."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  111,
+                  115,
+                  116,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "base_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                138,
+                71,
+                96,
+                15,
+                0,
+                196,
+                171,
+                4,
+                206,
+                249,
+                75,
+                87,
+                204,
+                40,
+                40,
+                12,
+                86,
+                124,
+                28,
+                171,
+                34,
+                62,
+                167,
+                237,
+                189,
+                27,
+                220,
+                238,
+                14,
+                10,
+                70,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "name": "base_source",
+          "docs": [
+            "ATA of game_authority — re-creatable at the same address, so return_base always works."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "game_authority"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "base_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "pool_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_pool"
+              },
+              {
+                "kind": "account",
+                "path": "base_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "Anchor `init` + `token::` — sized for the mint's required account extensions and",
+            "tolerant of a pre-funded address (POC §13 #3)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "returns": {
-        "defined": {
-          "name": "AssetKind"
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
+        },
+        {
+          "name": "payout_amounts",
+          "type": {
+            "vec": "u64"
+          }
         }
-      }
+      ]
     },
     {
-      "name": "poc_close_pool",
-      "docs": [
-        "Test helper: close the pool to its rent payer (reach the \"account gone\" state)."
-      ],
+      "name": "refund_boost_sol",
       "discriminator": [
-        104,
-        252,
-        164,
-        184,
-        185,
-        61,
-        29,
-        239
+        30,
+        201,
+        135,
+        222,
+        13,
+        247,
+        91,
+        125
       ],
       "accounts": [
         {
           "name": "match_pool",
+          "writable": true,
+          "relations": [
+            "pool_asset",
+            "boost_receipt"
+          ]
+        },
+        {
+          "name": "pool_asset",
           "writable": true
         },
         {
-          "name": "rent_payer",
+          "name": "boost_receipt",
+          "writable": true
+        },
+        {
+          "name": "booster",
           "writable": true,
           "relations": [
-            "match_pool"
+            "boost_receipt"
           ]
         }
       ],
       "args": []
     },
     {
-      "name": "poc_dup_keys",
-      "docs": [
-        "§13 #5: `payer` (mut Signer) and `winner` (read-only) may be the same key."
-      ],
+      "name": "refund_boost_token",
       "discriminator": [
-        150,
-        158,
-        129,
-        42,
-        7,
-        154,
-        152,
-        53
+        86,
+        192,
+        246,
+        73,
+        146,
+        199,
+        27,
+        214
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "match_pool",
           "writable": true,
-          "signer": true
+          "relations": [
+            "pool_asset",
+            "boost_receipt"
+          ]
         },
         {
-          "name": "winner"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "poc_init_vault",
-      "docs": [
-        "§1.4 rule 3 / §3.2: vault = PDA token account created by Anchor `init` + `token::`."
-      ],
-      "discriminator": [
-        63,
-        186,
-        32,
-        68,
-        120,
-        128,
-        64,
-        103
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          "name": "pool_asset",
+          "writable": true
         },
         {
           "name": "mint"
-        },
-        {
-          "name": "owner",
-          "docs": [
-            "Stand-in for the PoolAsset PDA (authority of the vault)."
-          ]
         },
         {
           "name": "vault",
@@ -214,17 +2166,214 @@
               },
               {
                 "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "account",
-                "path": "mint"
+                "path": "pool_asset"
               }
             ]
           }
         },
         {
+          "name": "boost_receipt",
+          "writable": true
+        },
+        {
+          "name": "booster",
+          "writable": true,
+          "relations": [
+            "boost_receipt"
+          ]
+        },
+        {
+          "name": "booster_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "booster"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "refund_boost_token_with_ata",
+      "discriminator": [
+        216,
+        164,
+        230,
+        122,
+        53,
+        2,
+        31,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "match_pool",
+          "writable": true,
+          "relations": [
+            "pool_asset",
+            "boost_receipt"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boost_receipt",
+          "writable": true
+        },
+        {
+          "name": "booster",
+          "writable": true,
+          "relations": [
+            "boost_receipt"
+          ]
+        },
+        {
+          "name": "booster_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "booster"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "system_program",
@@ -234,11 +2383,95 @@
       "args": []
     },
     {
-      "name": "settle",
-      "docs": [
-        "§5.4. Never errors on state: returns `CpiOutcome` (Anchor return value).",
-        "`match_pool` is an `UncheckedAccount` so a closed (empty) pool yields `NoOp(Closed)`."
+      "name": "return_base_sol",
+      "discriminator": [
+        93,
+        117,
+        249,
+        39,
+        16,
+        144,
+        90,
+        126
       ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "base_source",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "return_base_token",
+      "discriminator": [
+        185,
+        255,
+        143,
+        219,
+        0,
+        7,
+        67,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "relations": [
+            "pool_asset"
+          ]
+        },
+        {
+          "name": "pool_asset",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "base_source",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle",
       "discriminator": [
         175,
         42,
@@ -285,6 +2518,19 @@
   ],
   "accounts": [
     {
+      "name": "BoostReceipt",
+      "discriminator": [
+        44,
+        143,
+        192,
+        39,
+        42,
+        9,
+        220,
+        167
+      ]
+    },
+    {
       "name": "MatchPool",
       "discriminator": [
         114,
@@ -296,26 +2542,376 @@
         43,
         48
       ]
+    },
+    {
+      "name": "PoolAsset",
+      "discriminator": [
+        112,
+        52,
+        77,
+        41,
+        205,
+        31,
+        254,
+        19
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BaseReturned",
+      "discriminator": [
+        232,
+        235,
+        74,
+        108,
+        157,
+        43,
+        21,
+        250
+      ]
+    },
+    {
+      "name": "BoostAdded",
+      "discriminator": [
+        8,
+        64,
+        26,
+        113,
+        186,
+        47,
+        191,
+        159
+      ]
+    },
+    {
+      "name": "BoostRefunded",
+      "discriminator": [
+        32,
+        64,
+        236,
+        65,
+        253,
+        60,
+        71,
+        111
+      ]
+    },
+    {
+      "name": "Claimed",
+      "discriminator": [
+        217,
+        192,
+        123,
+        72,
+        108,
+        150,
+        248,
+        33
+      ]
+    },
+    {
+      "name": "FeeCollected",
+      "discriminator": [
+        12,
+        28,
+        17,
+        248,
+        244,
+        36,
+        8,
+        73
+      ]
+    },
+    {
+      "name": "PoolCancelled",
+      "discriminator": [
+        204,
+        15,
+        86,
+        4,
+        124,
+        97,
+        170,
+        173
+      ]
+    },
+    {
+      "name": "PoolClosed",
+      "discriminator": [
+        106,
+        46,
+        29,
+        231,
+        42,
+        44,
+        73,
+        119
+      ]
+    },
+    {
+      "name": "PoolLocked",
+      "discriminator": [
+        222,
+        161,
+        104,
+        177,
+        64,
+        73,
+        79,
+        149
+      ]
+    },
+    {
+      "name": "PoolOpened",
+      "discriminator": [
+        44,
+        53,
+        197,
+        215,
+        31,
+        61,
+        56,
+        170
+      ]
+    },
+    {
+      "name": "PoolSettled",
+      "discriminator": [
+        71,
+        220,
+        136,
+        147,
+        65,
+        185,
+        90,
+        47
+      ]
     }
   ],
   "errors": [
     {
       "code": 6000,
       "name": "NotGameAuthority",
-      "msg": "signer is not the game_authority PDA of game_program"
+      "msg": "signer is not the game_authority of this game"
     },
     {
       "code": 6001,
-      "name": "TooManyRanks",
-      "msg": "too many ranks"
+      "name": "GameNotActive",
+      "msg": "game is not Active in platform-core"
     },
     {
       "code": 6002,
+      "name": "TooManyRanks",
+      "msg": "more ranks than MAX_WINNERS"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidPayoutAmount",
+      "msg": "payout amount is 0, the list is empty, or the sum overflows"
+    },
+    {
+      "code": 6004,
+      "name": "BaseAmountMismatch",
+      "msg": "base deposited into the vault differs from the sum of payout_amounts"
+    },
+    {
+      "code": 6005,
+      "name": "PoolNotOpen",
+      "msg": "pool is not open for boosts"
+    },
+    {
+      "code": 6006,
+      "name": "TooManyAssets",
+      "msg": "pool already holds MAX_BOOST_ASSETS boosted assets"
+    },
+    {
+      "code": 6007,
+      "name": "MessageTooLong",
+      "msg": "message longer than MAX_MESSAGE_BYTES"
+    },
+    {
+      "code": 6008,
+      "name": "BoostTooSmall",
+      "msg": "SOL boost below MIN_SOL_BOOST"
+    },
+    {
+      "code": 6009,
+      "name": "ZeroDeposit",
+      "msg": "nothing was deposited"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidNftAmount",
+      "msg": "an NFT boost must be exactly 1"
+    },
+    {
+      "code": 6011,
+      "name": "TokenProgramMismatch",
+      "msg": "token program does not match the mint / pool asset"
+    },
+    {
+      "code": 6012,
+      "name": "PoolNotSettled",
+      "msg": "pool is not settled"
+    },
+    {
+      "code": 6013,
+      "name": "NoWinnerAtIndex",
+      "msg": "no eligible winner at this index"
+    },
+    {
+      "code": 6014,
+      "name": "NothingToClaim",
+      "msg": "nothing to claim for this index and asset"
+    },
+    {
+      "code": 6015,
+      "name": "AlreadyClaimed",
+      "msg": "already claimed"
+    },
+    {
+      "code": 6016,
+      "name": "NoFeeForNft",
+      "msg": "NFTs carry no platform fee"
+    },
+    {
+      "code": 6017,
+      "name": "FeeAlreadyCollected",
+      "msg": "fee already collected"
+    },
+    {
+      "code": 6018,
+      "name": "BaseAlreadyReturned",
+      "msg": "base already returned"
+    },
+    {
+      "code": 6019,
+      "name": "RefundNotAllowed",
+      "msg": "boost refund is not allowed in this state"
+    },
+    {
+      "code": 6020,
+      "name": "NotExpired",
+      "msg": "pool has not reached POOL_EXPIRY"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidStatus",
+      "msg": "instruction not allowed in the pool's current status"
+    },
+    {
+      "code": 6022,
+      "name": "AssetNotSettled",
+      "msg": "asset still owes claims, fee, base return or refunds"
+    },
+    {
+      "code": 6023,
+      "name": "PoolNotEmpty",
+      "msg": "pool still has open assets or receipts"
+    },
+    {
+      "code": 6024,
+      "name": "MathOverflow",
+      "msg": "math overflow"
+    },
+    {
+      "code": 6025,
+      "name": "BaseMustBeFungible",
+      "msg": "base asset must be fungible"
+    },
+    {
+      "code": 6026,
+      "name": "BaseAccountsMismatch",
+      "msg": "base accounts do not match"
+    },
+    {
+      "code": 6027,
+      "name": "PayoutBelowRentExempt",
+      "msg": "SOL payout below rent-exempt minimum"
+    },
+    {
+      "code": 6028,
+      "name": "NoRankOneWinner",
+      "msg": "no eligible rank-1 winner"
+    },
+    {
+      "code": 6029,
+      "name": "ReceiptAssetMismatch",
+      "msg": "receipt does not belong to this pool / asset"
+    },
+    {
+      "code": 6030,
+      "name": "AssetKindMismatch",
+      "msg": "SOL / token variant does not match the pool asset kind"
+    },
+    {
+      "code": 6031,
+      "name": "BoostNetBelowRentExempt",
+      "msg": "SOL boost net of fee is below rent-exempt minimum"
+    },
+    {
+      "code": 6032,
+      "name": "NotBaseAsset",
+      "msg": "asset is not the pool's base asset"
+    },
+    {
+      "code": 6033,
       "name": "WrongMatchPool",
       "msg": "match_pool is not the PDA of (game_program, room_id)"
     }
   ],
   "types": [
+    {
+      "name": "AllowedMint",
+      "docs": [
+        "PDA `[BOOST_MINT_SEED, mint]`. Existing = mint may be boosted (rev 3 #3 · Q4).",
+        "Covers SPL Token and Token-2022 — `token_program` says which.",
+        "Layout: specs/designs/01 §5 (147 bytes)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "added_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "added_at",
+            "type": "i64"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "AssetKind",
       "type": {
@@ -329,6 +2925,136 @@
           },
           {
             "name": "Nft"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BaseReturned",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BoostAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "booster",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BoostReceipt",
+      "docs": [
+        "`[b\"boost\", match_pool, booster, asset_id]`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rent_payer",
+            "docs": [
+              "offset 8 · = booster (W21)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "match_pool",
+            "docs": [
+              "offset 40."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "booster",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BoostRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "booster",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
           }
         ]
       }
@@ -351,7 +3077,38 @@
       }
     },
     {
+      "name": "Claimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u8"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "CpiOutcome",
+      "docs": [
+        "Returned (Anchor return value) by every instruction a game CPIs into."
+      ],
       "type": {
         "kind": "enum",
         "variants": [
@@ -382,12 +3139,128 @@
       }
     },
     {
+      "name": "FeeCollected",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameEntry",
+      "docs": [
+        "PDA `[GAME_SEED, game_program]`. Never closed (I4) — only `Suspended`.",
+        "Layout: specs/designs/01 §4 (220 bytes)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "GameStatus"
+              }
+            }
+          },
+          {
+            "name": "game_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "game_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "game_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "registered_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "registered_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameStatus",
+      "docs": [
+        "⚠️ Never reorder — the relayer filters `GameEntry` with memcmp(offset 10, 0x00 = Active).",
+        "⚠️ INVARIANT: every explicit value MUST equal its variant index. The IDL carries no",
+        "discriminant values, so `declare_program!` consumers encode the *index*; a gap or",
+        "out-of-order value would silently desync them. Append only, next value = next index",
+        "(guarded by `enum_bytes_frozen_v1` + `enum_byte_equals_declaration_index` and the",
+        "compile-time `enum_tripwire` in tests/test_layout.rs)."
+      ],
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Suspended"
+          }
+        ]
+      }
+    },
+    {
       "name": "MatchPool",
+      "docs": [
+        "`[b\"match_pool\", game_program, room_id.to_le_bytes()]`"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "rent_payer",
+            "docs": [
+              "offset 8 · = game_authority (Q-13 / D11)."
+            ],
             "type": "pubkey"
           },
           {
@@ -400,6 +3273,9 @@
           },
           {
             "name": "game_authority",
+            "docs": [
+              "Snapshot of GameEntry.game_authority at open (never changes — 03 §2.2 X5)."
+            ],
             "type": "pubkey"
           },
           {
@@ -416,6 +3292,9 @@
           },
           {
             "name": "fee_bps",
+            "docs": [
+              "Snapshot of PlatformConfig.boost_fee_bps at open."
+            ],
             "type": "u16"
           },
           {
@@ -430,16 +3309,25 @@
           },
           {
             "name": "base_asset",
+            "docs": [
+              "None = no base · SOL base = Some(Pubkey::default())."
+            ],
             "type": {
               "option": "pubkey"
             }
           },
           {
             "name": "base_source",
+            "docs": [
+              "token base = ATA of game_authority · SOL base = game_authority · none = default."
+            ],
             "type": "pubkey"
           },
           {
             "name": "winners",
+            "docs": [
+              "index 0 = rank 1 (receives every boost) · None = bot / disconnected / AI agent."
+            ],
             "type": {
               "vec": {
                 "option": "pubkey"
@@ -490,6 +3378,261 @@
           },
           {
             "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfig",
+      "docs": [
+        "PDA `[CONFIG_SEED]` — single instance. Layout: specs/designs/01 §2 (97 bytes).",
+        "",
+        "No `max_fee_bps` (X1 — ceiling is `MAX_FEE_BPS` in code), no `treasury`",
+        "(X2 — derive from `TREASURY_SEED`), no `moderator` (rev 3 #5 — RBAC role)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "boost_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "ad_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "admin_count",
+            "type": "u16"
+          },
+          {
+            "name": "treasury_bump",
+            "type": "u8"
+          },
+          {
+            "name": "initialized_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolAsset",
+      "docs": [
+        "`[b\"pool_asset\", match_pool, asset_id]`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rent_payer",
+            "docs": [
+              "offset 8 · base: game_authority · boost: first booster of this asset."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "match_pool",
+            "docs": [
+              "offset 40."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "kind",
+            "type": {
+              "defined": {
+                "name": "AssetKind"
+              }
+            }
+          },
+          {
+            "name": "asset_id",
+            "docs": [
+              "mint · SOL = Pubkey::default()."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "base_amount",
+            "type": "u64"
+          },
+          {
+            "name": "boost_received",
+            "type": "u64"
+          },
+          {
+            "name": "claimed",
+            "docs": [
+              "bit i = winners[i] claimed this asset."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "base_returned",
+            "type": "bool"
+          },
+          {
+            "name": "boost_refunded",
+            "type": "u64"
+          },
+          {
+            "name": "fee_collected",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "reason",
+            "type": {
+              "defined": {
+                "name": "CancelReason"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "rent_payer",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolLocked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "game_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "room_id",
+            "type": "u64"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "base_asset",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "payout_amounts",
+            "type": {
+              "vec": "u64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "winners",
+            "type": {
+              "vec": {
+                "option": "pubkey"
+              }
+            }
           }
         ]
       }

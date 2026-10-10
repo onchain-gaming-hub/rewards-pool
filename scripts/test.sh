@@ -8,4 +8,4 @@ anchor build
 # mock-game reads idls/rewards_pool.json via declare_program! → refresh it from the build.
 cp target/idl/rewards_pool.json idls/rewards_pool.json
 cargo build-sbf --manifest-path tests/mock-game/Cargo.toml --sbf-out-dir target/deploy
-cargo test -p rewards_pool "$@" -- --nocapture
+cargo test -p rewards_pool "$@"
