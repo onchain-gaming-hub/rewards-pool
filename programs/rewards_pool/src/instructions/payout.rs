@@ -40,10 +40,10 @@ pub struct CollectFeeSol<'info> {
 
 pub fn handle_collect_fee_sol(ctx: Context<CollectFeeSol>) -> Result<()> {
     let fee = fee_due(&ctx.accounts.match_pool, &ctx.accounts.pool_asset)?;
+    ctx.accounts.pool_asset.fee_collected = true; // mark before moving value (§11.7)
     if fee > 0 {
         lamports_out(&ctx.accounts.pool_asset.to_account_info(), &ctx.accounts.treasury.to_account_info(), fee)?;
     }
-    ctx.accounts.pool_asset.fee_collected = true;
     emit!(FeeCollected { match_pool: ctx.accounts.match_pool.key(), asset_id: Pubkey::default(), fee });
     Ok(())
 }
@@ -75,8 +75,9 @@ pub struct CollectFeeToken<'info> {
 }
 
 pub fn handle_collect_fee_token(ctx: Context<CollectFeeToken>) -> Result<()> {
+    let fee = fee_due(&ctx.accounts.match_pool, &ctx.accounts.pool_asset)?;
+    ctx.accounts.pool_asset.fee_collected = true; // mark before moving value (§11.7)
     let a = &ctx.accounts;
-    let fee = fee_due(&a.match_pool, &a.pool_asset)?;
     if fee > 0 {
         vault_transfer(
             a.token_program.to_account_info(),
@@ -92,7 +93,6 @@ pub fn handle_collect_fee_token(ctx: Context<CollectFeeToken>) -> Result<()> {
         )?;
     }
     let asset_id = ctx.accounts.pool_asset.asset_id;
-    ctx.accounts.pool_asset.fee_collected = true;
     emit!(FeeCollected { match_pool: ctx.accounts.match_pool.key(), asset_id, fee });
     Ok(())
 }
@@ -309,7 +309,7 @@ pub struct RefundBoostSol<'info> {
     pub match_pool: Box<Account<'info, MatchPool>>,
     #[account(mut, has_one = match_pool, constraint = pool_asset.kind == AssetKind::Sol @ RewardsError::AssetKindMismatch)]
     pub pool_asset: Box<Account<'info, PoolAsset>>,
-    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)]
+    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)] // close to booster == receipt.rent_payer (boost.rs record)
     pub boost_receipt: Box<Account<'info, BoostReceipt>>,
     /// CHECK: = receipt.booster (= receipt.rent_payer) — refund + receipt rent go here.
     #[account(mut)]
@@ -333,7 +333,7 @@ pub struct RefundBoostToken<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, seeds = [VAULT_SEED, pool_asset.key().as_ref()], bump = pool_asset.vault_bump)]
     pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)]
+    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)] // close to booster == receipt.rent_payer (boost.rs record)
     pub boost_receipt: Box<Account<'info, BoostReceipt>>,
     /// CHECK: = receipt.booster.
     #[account(mut)]
@@ -380,7 +380,7 @@ pub struct RefundBoostTokenWithAta<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, seeds = [VAULT_SEED, pool_asset.key().as_ref()], bump = pool_asset.vault_bump)]
     pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)]
+    #[account(mut, has_one = match_pool @ RewardsError::ReceiptAssetMismatch, has_one = booster, close = booster)] // close to booster == receipt.rent_payer (boost.rs record)
     pub boost_receipt: Box<Account<'info, BoostReceipt>>,
     /// CHECK: = receipt.booster.
     #[account(mut)]

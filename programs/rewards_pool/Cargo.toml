@@ -1,7 +1,7 @@
 [package]
 name = "rewards_pool"
-version = "0.0.1"
-description = "rewards-pool — POC subset of specs/spec-v2.md (§13). Not the final program."
+version = "1.0.0"
+description = "rewards-pool — per-match prize pools for blockchain-games-hub (specs/spec-v2.md)"
 edition.workspace = true
 rust-version.workspace = true
 

@@ -22,8 +22,9 @@ fn partial_refund_blocks_close_until_every_booster_is_refunded() {
     assert_eq!(outcome(send(&mut w.svm, &[cancel_match(1)], &[&w.payer])), 20);
     assert_err(&send(&mut w.svm, &[close_receipt(1, &b1.pubkey(), &Pubkey::default())], &[&w.payer]), 6012); // PoolNotSettled
     let before = lamports(&w.svm, &b1.pubkey());
+    let receipt_rent = lamports(&w.svm, &receipt_pda(&pool_pda(1), &b1.pubkey(), &Pubkey::default()));
     ok(send(&mut w.svm, &[refund_sol(1, &b1.pubkey())], &[&w.payer]));
-    assert!(lamports(&w.svm, &b1.pubkey()) - before > SOL / 10 + SOL / 20, "both boosts + receipt rent back");
+    assert_eq!(lamports(&w.svm, &b1.pubkey()) - before, SOL / 10 + SOL / 20 + receipt_rent, "both boosts + receipt rent back");
     assert_err(&send(&mut w.svm, &[close_sol_asset(1, &b1.pubkey())], &[&w.payer]), 6022); // b2 not refunded yet
     ok(send(&mut w.svm, &[refund_sol(1, &b2.pubkey()), close_sol_asset(1, &b1.pubkey()), close_pool(1)], &[&w.payer]));
 }
@@ -136,4 +137,109 @@ fn fee_above_cap_is_rejected_at_open() {
     let mut w = world();
     put_config(&mut w.svm, 2_001);
     assert_err(&send(&mut w.svm, &[start_match(7)], &[&w.payer]), 6034); // FeeTooHigh
+}
+
+// ───────── Fable code review round 1 additions ─────────
+
+#[test]
+fn prefunded_pdas_do_not_block_init() {
+    let mut w = world();
+    let booster = funded(&mut w.svm);
+    let min = w.svm.minimum_balance_for_rent_exemption(0);
+    let p = pool_pda(8);
+    for addr in [p, asset_pda(&p, &Pubkey::default()), receipt_pda(&p, &booster.pubkey(), &Pubkey::default())] {
+        ok(send(&mut w.svm, &[system_instruction::transfer(&w.payer.pubkey(), &addr, min)], &[&w.payer]));
+    }
+    ok(send(&mut w.svm, &[start_match_sol(8, vec![1_000_000])], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_sol(8, &booster.pubkey(), SOL / 100, "")], &[&booster]));
+}
+
+#[test]
+fn crank_pays_ata_for_winner_and_same_booster_token_twice_accumulates() {
+    let mut w = world();
+    let (a, booster, crank) = (Keypair::new(), funded(&mut w.svm), funded(&mut w.svm));
+    let tok = fungible(&mut w.svm, &w.payer, &booster.pubkey(), &TOKEN, 1_000);
+    ok(send(&mut w.svm, &[start_match(9)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(9, &booster.pubkey(), &tok, &TOKEN, 300, ""), boost_token(9, &booster.pubkey(), &tok, &TOKEN, 200, "")], &[&booster]));
+    assert_eq!(pool(&w.svm, 9).open_receipts, 1);
+    assert_eq!(asset(&w.svm, &asset_pda(&pool_pda(9), &tok)).boost_received, 500);
+    assert_eq!(outcome(send(&mut w.svm, &[finish(9, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    ok(send(&mut w.svm, &[claim_token_with_ata(9, 0, &crank.pubkey(), &a.pubkey(), &tok, &TOKEN)], &[&crank]));
+    assert_eq!(token_balance(&w.svm, &ata(&a.pubkey(), &tok, &TOKEN)), 495);
+}
+
+#[test]
+fn nft_without_treasury_ata_cannot_be_fee_collected_and_fee_zero_is_fine() {
+    let mut w = world();
+    put_config(&mut w.svm, 0); // fee 0%
+    let (a, booster) = (funded(&mut w.svm), funded(&mut w.svm));
+    let n = nft(&mut w.svm, &w.payer, &booster.pubkey()); // pure 1/1 → no Treasury ATA
+    ok(send(&mut w.svm, &[start_match(10)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(10, &booster.pubkey(), &n, &TOKEN, 1, ""), boost_sol(10, &booster.pubkey(), SOL / 100, "")], &[&booster]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(10, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    assert_err(&send(&mut w.svm, &[collect_fee_token(10, &n, &TOKEN)], &[&w.payer]), 3012); // spec §5.6
+    let t0 = lamports(&w.svm, &treasury_pda().0);
+    ok(send(&mut w.svm, &[collect_fee_sol(10)], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &treasury_pda().0), t0, "fee 0 → flag only");
+    ok(send(&mut w.svm, &[claim_sol(10, 0, &a.pubkey()), claim_token_with_ata(10, 0, &a.pubkey(), &a.pubkey(), &n, &TOKEN)], &[&a]));
+    ok(send(&mut w.svm, &[close_receipt(10, &booster.pubkey(), &n), close_receipt(10, &booster.pubkey(), &Pubkey::default()), close_token_asset(10, &n, &TOKEN, &booster.pubkey()), close_sol_asset(10, &booster.pubkey()), close_pool(10)], &[&w.payer]));
+}
+
+#[test]
+fn cancel_and_expire_from_boosts_locked() {
+    let mut w = world();
+    set_time(&mut w.svm, 5_000_000);
+    ok(send(&mut w.svm, &[start_match(11), start_match(12)], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[lock(11)], &[&w.payer])), 0);
+    assert_eq!(outcome(send(&mut w.svm, &[cancel_match(11)], &[&w.payer])), 20);
+    assert_eq!(outcome(send(&mut w.svm, &[lock(12)], &[&w.payer])), 0);
+    set_time(&mut w.svm, 5_000_000 + 7 * 86_400);
+    ok(send(&mut w.svm, &[expire(12)], &[&w.payer]));
+    assert_eq!(pool(&w.svm, 12).status, rewards_pool::state::PoolStatus::Cancelled);
+}
+
+#[test]
+fn wrong_token_program_on_claim_is_rejected() {
+    let mut w = world();
+    let (a, booster) = (Keypair::new(), funded(&mut w.svm));
+    let tok = fungible(&mut w.svm, &w.payer, &booster.pubkey(), &TOKEN, 100);
+    create_ata(&mut w.svm, &w.payer, &a.pubkey(), &tok, &TOKEN);
+    ok(send(&mut w.svm, &[start_match(13)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(13, &booster.pubkey(), &tok, &TOKEN, 100, "")], &[&booster]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(13, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    let mut ix = claim_token(13, 0, &a.pubkey(), &tok, &TOKEN);
+    ix.accounts.last_mut().unwrap().pubkey = anchor_spl::token_2022::ID;
+    assert!(send(&mut w.svm, &[ix], &[&w.payer]).is_err(), "Anchor mint/ATA constraint or TokenProgramMismatch");
+}
+
+#[test]
+fn token_base_returns_to_a_recreated_game_ata() {
+    let mut w = world();
+    let point = fungible(&mut w.svm, &w.payer, &game_authority(), &TOKEN, 1_000);
+    ok(send(&mut w.svm, &[start_match_token(14, &point, &TOKEN, vec![100])], &[&w.payer]));
+    assert_eq!(outcome(send(&mut w.svm, &[cancel_match(14)], &[&w.payer])), 20);
+    // Simulate the game closing its ATA, then anyone re-creating it at the same address.
+    let ga_ata = ata(&game_authority(), &point, &TOKEN);
+    w.svm.set_account(ga_ata, solana_account::Account::default()).unwrap();
+    create_ata(&mut w.svm, &w.payer, &game_authority(), &point, &TOKEN);
+    ok(send(&mut w.svm, &[return_base_token(14, &point, &TOKEN)], &[&w.payer]));
+    assert_eq!(token_balance(&w.svm, &ga_ata), 100);
+}
+
+#[test]
+fn compute_units_of_main_paths() {
+    let mut w = world();
+    let (a, booster) = (Keypair::new(), funded(&mut w.svm));
+    let tok = fungible(&mut w.svm, &w.payer, &booster.pubkey(), &TOKEN, 1_000);
+    create_ata(&mut w.svm, &w.payer, &a.pubkey(), &tok, &TOKEN);
+    let cu = |m: litesvm::types::TransactionMetadata| m.compute_units_consumed;
+    let open = cu(ok(send(&mut w.svm, &[start_match_sol(15, vec![1_000_000])], &[&w.payer])));
+    let bs = cu(ok(send(&mut w.svm, &[boost_sol(15, &booster.pubkey(), SOL / 100, "")], &[&booster])));
+    let bt = cu(ok(send(&mut w.svm, &[boost_token(15, &booster.pubkey(), &tok, &TOKEN, 100, "")], &[&booster])));
+    let st = cu(ok(send(&mut w.svm, &[finish(15, vec![Some(a.pubkey())])], &[&w.payer])));
+    let fee = cu(ok(send(&mut w.svm, &[collect_fee_token(15, &tok, &TOKEN)], &[&w.payer])));
+    let cs = cu(ok(send(&mut w.svm, &[claim_sol(15, 0, &a.pubkey())], &[&w.payer])));
+    let ct = cu(ok(send(&mut w.svm, &[claim_token(15, 0, &a.pubkey(), &tok, &TOKEN)], &[&w.payer])));
+    println!("CU · open_pool_sol(via game) {open} · boost_sol {bs} · boost_token {bt} · settle(via game) {st} · collect_fee_token {fee} · claim_sol {cs} · claim_token {ct}");
+    assert!(ct < 50_000 && cs < 50_000);
 }

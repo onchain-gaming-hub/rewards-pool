@@ -142,7 +142,10 @@ fn cancel_returns_everything_and_later_game_calls_are_noops() {
     assert_eq!(outcome(send(&mut w.svm, &[cancel_match(4)], &[&w.payer])), 20); // Cancelled(ByGame)
     assert_eq!(outcome(send(&mut w.svm, &[finish(4, vec![Some(booster.pubkey())])], &[&w.payer])), 12); // NoOp(AlreadyCancelled)
     assert_eq!(outcome(send(&mut w.svm, &[lock(4)], &[&w.payer])), 12);
+    let b0 = lamports(&w.svm, &booster.pubkey());
+    let receipt_rent = lamports(&w.svm, &receipt_pda(&pool_pda(4), &booster.pubkey(), &Pubkey::default()));
     ok(send(&mut w.svm, &[refund_sol(4, &booster.pubkey()), return_base_sol(4), close_sol_asset(4, &game_authority()), close_pool(4)], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &booster.pubkey()) - b0, SOL + receipt_rent, "booster refunded in full + receipt rent");
     assert_eq!(lamports(&w.svm, &game_authority()), ga0, "game_authority made whole (base + all rent)");
     assert_eq!(outcome(send(&mut w.svm, &[finish(4, vec![Some(booster.pubkey())])], &[&w.payer])), 13, "closed pool → NoOp(Closed)");
 }
@@ -210,8 +213,11 @@ fn stray_tokens_are_burned_on_close() {
     ok(send(&mut w.svm, &[collect_fee_token(9, &tok, &TOKEN), claim_token(9, 0, &a.pubkey(), &tok, &TOKEN)], &[&w.payer]));
     assert_eq!(token_balance(&w.svm, &ata(&a.pubkey(), &tok, &TOKEN)), 99, "stray not paid out");
     assert_eq!(token_balance(&w.svm, &vault), 7);
+    let supply = |svm: &litesvm::LiteSVM| anchor_spl::token_2022::spl_token_2022::extension::StateWithExtensions::<anchor_spl::token_2022::spl_token_2022::state::Mint>::unpack(&svm.get_account(&tok).unwrap().data).unwrap().base.supply;
+    let s0 = supply(&w.svm);
     ok(send(&mut w.svm, &[close_receipt(9, &booster.pubkey(), &tok), close_token_asset(9, &tok, &TOKEN, &booster.pubkey()), close_pool(9)], &[&w.payer]));
     assert!(gone(&w.svm, &vault));
+    assert_eq!(s0 - supply(&w.svm), 7, "stray burned (supply dropped), not silently lost");
 }
 
 /// Token-2022 Pausable mint: vault gets PausableAccount (Anchor init sizing).

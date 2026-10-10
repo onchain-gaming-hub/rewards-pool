@@ -2,9 +2,9 @@
   "address": "HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW",
   "metadata": {
     "name": "rewards_pool",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "spec": "0.1.0",
-    "description": "rewards-pool — POC subset of specs/spec-v2.md (§13). Not the final program."
+    "description": "rewards-pool — per-match prize pools for blockchain-games-hub (specs/spec-v2.md)"
   },
   "instructions": [
     {

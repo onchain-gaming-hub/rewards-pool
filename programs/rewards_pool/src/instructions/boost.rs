@@ -170,7 +170,12 @@ pub struct BoostToken<'info> {
 pub fn handle_boost_token(ctx: Context<BoostToken>, amount: u64, message: String) -> Result<()> {
     require!(message.len() <= MAX_MESSAGE_BYTES, RewardsError::MessageTooLong);
     let mint_key = ctx.accounts.mint.key();
-    let kind = logic::classify(&ctx.accounts.mint, &mint_key);
+    // Kind is frozen when the PoolAsset is created; later boosts reuse it (supply can move).
+    let kind = if ctx.accounts.pool_asset.version == 0 {
+        logic::classify(&ctx.accounts.mint, &mint_key)
+    } else {
+        ctx.accounts.pool_asset.kind
+    };
     if kind == AssetKind::Nft {
         require!(amount == 1, RewardsError::InvalidNftAmount);
     }

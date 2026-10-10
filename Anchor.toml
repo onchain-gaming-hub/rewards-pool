@@ -3,7 +3,7 @@ anchor_version = "1.2.1"
 solana_version = "4.3.0"
 
 [workspace]
-# POC phase: programs/rewards_pool = POC subset of spec-v2 (NOT the final program).
+# programs/rewards_pool = the program (specs/spec-v2.md).
 # tests/mock-game is TEST ONLY (built separately by scripts/test.sh) — never deploy.
 members = ["programs/rewards_pool"]
 
