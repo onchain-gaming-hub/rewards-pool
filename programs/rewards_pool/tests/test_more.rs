@@ -336,8 +336,28 @@ fn unpayable_winner_keys_are_treated_as_none() {
     ok(send(&mut w.svm, &[start_match_sol(20, vec![1_000_000, 1_000_000, 1_000_000])], &[&w.payer]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(20, vec![Some(Pubkey::default()), Some(pool_pda(20)), Some(c.pubkey())])], &[&w.payer])), 0);
     assert_eq!(pool(&w.svm, 20).winners, vec![None, None, Some(c.pubkey())]);
-    ok(send(&mut w.svm, &[claim_sol(20, 2, &c.pubkey()), return_base_sol(20), close_sol_asset(20, &game_authority()), close_pool(20)], &[&w.payer]));
+    let g0 = lamports(&w.svm, &game_authority());
+    ok(send(&mut w.svm, &[claim_sol(20, 2, &c.pubkey()), return_base_sol(20)], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &game_authority()) - g0, 2_000_000, "two unpayable slots → base back to the game");
+    ok(send(&mut w.svm, &[close_sol_asset(20, &game_authority()), close_pool(20)], &[&w.payer]));
     // Only unpayable keys → R13 cancel.
     ok(send(&mut w.svm, &[start_match(21)], &[&w.payer]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(21, vec![Some(Pubkey::default())])], &[&w.payer])), 21);
+}
+
+#[test]
+fn claim_before_collect_fee_gives_the_same_result() {
+    let mut w = world();
+    let (a, booster) = (Keypair::new(), funded(&mut w.svm));
+    let tok = fungible(&mut w.svm, &w.payer, &booster.pubkey(), &TOKEN, 1_000);
+    create_ata(&mut w.svm, &w.payer, &a.pubkey(), &tok, &TOKEN);
+    ok(send(&mut w.svm, &[start_match(22)], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(22, &booster.pubkey(), &tok, &TOKEN, 1_000, "")], &[&booster]));
+    assert_eq!(outcome(send(&mut w.svm, &[finish(22, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    ok(send(&mut w.svm, &[claim_token(22, 0, &a.pubkey(), &tok, &TOKEN)], &[&w.payer]));
+    assert_eq!(token_balance(&w.svm, &ata(&a.pubkey(), &tok, &TOKEN)), 990);
+    assert_err(&send(&mut w.svm, &[close_token_asset(22, &tok, &TOKEN, &booster.pubkey())], &[&w.payer]), 6022); // fee still owed
+    ok(send(&mut w.svm, &[collect_fee_token(22, &tok, &TOKEN)], &[&w.payer]));
+    assert_eq!(token_balance(&w.svm, &ata(&treasury_pda().0, &tok, &TOKEN)), 10);
+    ok(send(&mut w.svm, &[close_receipt(22, &booster.pubkey(), &tok), close_token_asset(22, &tok, &TOKEN, &booster.pubkey()), close_pool(22)], &[&w.payer]));
 }
