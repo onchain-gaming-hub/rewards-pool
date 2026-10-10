@@ -150,8 +150,20 @@ fn prefunded_pdas_do_not_block_init() {
     for addr in [p, asset_pda(&p, &Pubkey::default()), receipt_pda(&p, &booster.pubkey(), &Pubkey::default())] {
         ok(send(&mut w.svm, &[system_instruction::transfer(&w.payer.pubkey(), &addr, min)], &[&w.payer]));
     }
+    let a = Keypair::new();
     ok(send(&mut w.svm, &[start_match_sol(8, vec![1_000_000])], &[&w.payer]));
     ok(send(&mut w.svm, &[boost_sol(8, &booster.pubkey(), SOL / 100, "")], &[&booster]));
+    let st = asset(&w.svm, &asset_pda(&p, &Pubkey::default()));
+    assert_eq!((st.base_amount, st.boost_received), (1_000_000, SOL / 100), "pre-funded lamports are not booked");
+    assert_eq!(outcome(send(&mut w.svm, &[finish(8, vec![Some(a.pubkey())])], &[&w.payer])), 0);
+    ok(send(&mut w.svm, &[collect_fee_sol(8), claim_sol(8, 0, &a.pubkey()), close_receipt(8, &booster.pubkey(), &Pubkey::default())], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &a.pubkey()), 1_000_000 + SOL / 100 - SOL / 10_000, "winner gets exactly base + boost − fee");
+    // The pre-funded stray lamports on the PoolAsset go to its rent_payer (game_authority) on close.
+    let pa = asset_pda(&p, &Pubkey::default());
+    let left = lamports(&w.svm, &pa);
+    let ga0 = lamports(&w.svm, &game_authority());
+    ok(send(&mut w.svm, &[close_sol_asset(8, &game_authority())], &[&w.payer]));
+    assert_eq!(lamports(&w.svm, &game_authority()) - ga0, left, "rent + stray to rent_payer");
 }
 
 #[test]
@@ -209,7 +221,10 @@ fn wrong_token_program_on_claim_is_rejected() {
     assert_eq!(outcome(send(&mut w.svm, &[finish(13, vec![Some(a.pubkey())])], &[&w.payer])), 0);
     let mut ix = claim_token(13, 0, &a.pubkey(), &tok, &TOKEN);
     ix.accounts.last_mut().unwrap().pubkey = anchor_spl::token_2022::ID;
-    assert!(send(&mut w.svm, &[ix], &[&w.payer]).is_err(), "Anchor mint/ATA constraint or TokenProgramMismatch");
+    let r = send(&mut w.svm, &[ix], &[&w.payer]);
+    let e = format!("{:?}", r.as_ref().expect_err("must fail").err);
+    println!("wrong token program on claim → {e}");
+    assert!(e.contains("Custom(2022)"), "Anchor ConstraintMintTokenProgram fires first: {e}");
 }
 
 #[test]
@@ -242,4 +257,28 @@ fn compute_units_of_main_paths() {
     let ct = cu(ok(send(&mut w.svm, &[claim_token(15, 0, &a.pubkey(), &tok, &TOKEN)], &[&w.payer])));
     println!("CU · open_pool_sol(via game) {open} · boost_sol {bs} · boost_token {bt} · settle(via game) {st} · collect_fee_token {fee} · claim_sol {cs} · claim_token {ct}");
     assert!(ct < 50_000 && cs < 50_000);
+}
+
+#[test]
+fn same_mint_base_and_boost_without_rank_one_settles_cleanly() {
+    let mut w = world();
+    let (b, booster) = (funded(&mut w.svm), funded(&mut w.svm));
+    let point = fungible(&mut w.svm, &w.payer, &game_authority(), &TOKEN, 1_000);
+    let b_ata = create_ata(&mut w.svm, &w.payer, &booster.pubkey(), &point, &TOKEN);
+    mint_to(&mut w.svm, &w.payer, &point, &b_ata, &TOKEN, 500);
+    create_ata(&mut w.svm, &w.payer, &b.pubkey(), &point, &TOKEN);
+    ok(send(&mut w.svm, &[start_match_token(16, &point, &TOKEN, vec![100, 40])], &[&w.payer]));
+    ok(send(&mut w.svm, &[boost_token(16, &booster.pubkey(), &point, &TOKEN, 500, "")], &[&booster]));
+    let vault = vault_pda(&asset_pda(&pool_pda(16), &point));
+    mint_to(&mut w.svm, &w.payer, &point, &vault, &TOKEN, 3); // stray
+    assert_eq!(outcome(send(&mut w.svm, &[finish(16, vec![None, Some(b.pubkey())])], &[&w.payer])), 0);
+    let ga_ata = ata(&game_authority(), &point, &TOKEN);
+    let g0 = token_balance(&w.svm, &ga_ata);
+    ok(send(&mut w.svm, &[claim_token(16, 1, &b.pubkey(), &point, &TOKEN), refund_token(16, &booster.pubkey(), &point, &TOKEN), return_base_token(16, &point, &TOKEN)], &[&w.payer]));
+    assert_eq!(token_balance(&w.svm, &ata(&b.pubkey(), &point, &TOKEN)), 40);
+    assert_eq!(token_balance(&w.svm, &b_ata), 500, "booster refunded in full, no fee");
+    assert_eq!(token_balance(&w.svm, &ga_ata) - g0, 100, "rank-1 base back to the game");
+    assert_eq!(token_balance(&w.svm, &vault), 3, "only the stray is left");
+    ok(send(&mut w.svm, &[close_token_asset(16, &point, &TOKEN, &game_authority()), close_pool(16)], &[&w.payer]));
+    assert!(gone(&w.svm, &vault) && gone(&w.svm, &pool_pda(16)));
 }

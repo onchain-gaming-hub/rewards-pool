@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# POC test run. Tests load PRE-BUILT .so files, so always build first.
+# Full test run. Tests load PRE-BUILT .so files, so always build first.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"

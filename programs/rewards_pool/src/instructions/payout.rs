@@ -40,7 +40,7 @@ pub struct CollectFeeSol<'info> {
 
 pub fn handle_collect_fee_sol(ctx: Context<CollectFeeSol>) -> Result<()> {
     let fee = fee_due(&ctx.accounts.match_pool, &ctx.accounts.pool_asset)?;
-    ctx.accounts.pool_asset.fee_collected = true; // mark before moving value (§11.7)
+    ctx.accounts.pool_asset.fee_collected = true; // set before the CPI (persisted at exit) — safety = no re-entrancy + atomic tx (§11.7)
     if fee > 0 {
         lamports_out(&ctx.accounts.pool_asset.to_account_info(), &ctx.accounts.treasury.to_account_info(), fee)?;
     }
@@ -76,7 +76,7 @@ pub struct CollectFeeToken<'info> {
 
 pub fn handle_collect_fee_token(ctx: Context<CollectFeeToken>) -> Result<()> {
     let fee = fee_due(&ctx.accounts.match_pool, &ctx.accounts.pool_asset)?;
-    ctx.accounts.pool_asset.fee_collected = true; // mark before moving value (§11.7)
+    ctx.accounts.pool_asset.fee_collected = true; // set before the CPI (persisted at exit) — safety = no re-entrancy + atomic tx (§11.7)
     let a = &ctx.accounts;
     if fee > 0 {
         vault_transfer(
@@ -108,7 +108,7 @@ fn take_claim(pool: &MatchPool, asset: &mut PoolAsset, index: u8, winner: &Pubke
     require!(asset.claimed & bit == 0, RewardsError::AlreadyClaimed);
     let amount = logic::payout(pool, asset, i)?;
     require!(amount > 0, RewardsError::NothingToClaim);
-    asset.claimed |= bit; // mark before moving value
+    asset.claimed |= bit; // set before the CPI (persisted at exit — §11.7)
     Ok(amount)
 }
 
