@@ -1,0 +1,22 @@
+[toolchain]
+anchor_version = "1.2.1"
+solana_version = "4.3.0"
+
+[workspace]
+# POC phase: programs/rewards_pool = POC subset of spec-v2 (NOT the final program).
+# tests/mock-game is TEST ONLY (built separately by scripts/test.sh) — never deploy.
+members = ["programs/rewards_pool"]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+rewards_pool = "2DmMWR2e3xVtwB5Kjp41QmNh4K8DP8uMXshxxTxwWd7q"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"

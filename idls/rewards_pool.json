@@ -1,0 +1,518 @@
+{
+  "address": "2DmMWR2e3xVtwB5Kjp41QmNh4K8DP8uMXshxxTxwWd7q",
+  "metadata": {
+    "name": "rewards_pool",
+    "version": "0.0.1",
+    "spec": "0.1.0",
+    "description": "rewards-pool — POC subset of specs/spec-v2.md (§13). Not the final program."
+  },
+  "instructions": [
+    {
+      "name": "open_pool",
+      "docs": [
+        "§5.1 (no-base variant). `game_authority` signs via CPI AND pays rent (Q-13)."
+      ],
+      "discriminator": [
+        96,
+        215,
+        110,
+        61,
+        1,
+        246,
+        205,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "game_authority",
+          "docs": [
+            "The game's PDA `[b\"game_authority\"]` — signer via CPI and rent payer (Q-13)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "match_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game_program"
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
+        },
+        {
+          "name": "payout_amounts",
+          "type": {
+            "vec": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "poc_classify",
+      "docs": [
+        "§3.4: returns the AssetKind the spec's predicate assigns to `mint`."
+      ],
+      "discriminator": [
+        140,
+        8,
+        227,
+        88,
+        89,
+        116,
+        227,
+        98
+      ],
+      "accounts": [
+        {
+          "name": "mint"
+        }
+      ],
+      "args": [],
+      "returns": {
+        "defined": {
+          "name": "AssetKind"
+        }
+      }
+    },
+    {
+      "name": "poc_close_pool",
+      "docs": [
+        "Test helper: close the pool to its rent payer (reach the \"account gone\" state)."
+      ],
+      "discriminator": [
+        104,
+        252,
+        164,
+        184,
+        185,
+        61,
+        29,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "match_pool",
+          "writable": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true,
+          "relations": [
+            "match_pool"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "poc_dup_keys",
+      "docs": [
+        "§13 #5: `payer` (mut Signer) and `winner` (read-only) may be the same key."
+      ],
+      "discriminator": [
+        150,
+        158,
+        129,
+        42,
+        7,
+        154,
+        152,
+        53
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "winner"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "poc_init_vault",
+      "docs": [
+        "§1.4 rule 3 / §3.2: vault = PDA token account created by Anchor `init` + `token::`."
+      ],
+      "discriminator": [
+        63,
+        186,
+        32,
+        68,
+        120,
+        128,
+        64,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "owner",
+          "docs": [
+            "Stand-in for the PoolAsset PDA (authority of the vault)."
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle",
+      "docs": [
+        "§5.4. Never errors on state: returns `CpiOutcome` (Anchor return value).",
+        "`match_pool` is an `UncheckedAccount` so a closed (empty) pool yields `NoOp(Closed)`."
+      ],
+      "discriminator": [
+        175,
+        42,
+        185,
+        87,
+        144,
+        131,
+        102,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "game_authority",
+          "signer": true
+        },
+        {
+          "name": "game_program"
+        },
+        {
+          "name": "match_pool",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": "u64"
+        },
+        {
+          "name": "winners",
+          "type": {
+            "vec": {
+              "option": "pubkey"
+            }
+          }
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "CpiOutcome"
+        }
+      }
+    }
+  ],
+  "accounts": [
+    {
+      "name": "MatchPool",
+      "discriminator": [
+        114,
+        28,
+        170,
+        141,
+        232,
+        190,
+        43,
+        48
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotGameAuthority",
+      "msg": "signer is not the game_authority PDA of game_program"
+    },
+    {
+      "code": 6001,
+      "name": "TooManyRanks",
+      "msg": "too many ranks"
+    },
+    {
+      "code": 6002,
+      "name": "WrongMatchPool",
+      "msg": "match_pool is not the PDA of (game_program, room_id)"
+    }
+  ],
+  "types": [
+    {
+      "name": "AssetKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Sol"
+          },
+          {
+            "name": "Fungible"
+          },
+          {
+            "name": "Nft"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CancelReason",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ByGame"
+          },
+          {
+            "name": "NoEligibleWinner"
+          },
+          {
+            "name": "Expired"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CpiOutcome",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Done"
+          },
+          {
+            "name": "NoOp",
+            "fields": [
+              {
+                "defined": {
+                  "name": "NoOpReason"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Cancelled",
+            "fields": [
+              {
+                "defined": {
+                  "name": "CancelReason"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rent_payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "game_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "game_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "room_id",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PoolStatus"
+              }
+            }
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "opened_at",
+            "type": "i64"
+          },
+          {
+            "name": "payout_amounts",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "base_asset",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "base_source",
+            "type": "pubkey"
+          },
+          {
+            "name": "winners",
+            "type": {
+              "vec": {
+                "option": "pubkey"
+              }
+            }
+          },
+          {
+            "name": "boost_asset_count",
+            "type": "u8"
+          },
+          {
+            "name": "open_assets",
+            "type": "u8"
+          },
+          {
+            "name": "open_receipts",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "NoOpReason",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AlreadyLocked"
+          },
+          {
+            "name": "AlreadySettled"
+          },
+          {
+            "name": "AlreadyCancelled"
+          },
+          {
+            "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "BoostsLocked"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    }
+  ]
+}

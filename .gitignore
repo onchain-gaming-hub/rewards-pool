@@ -7,3 +7,6 @@ test-ledger/
 .DS_Store
 dist/
 .wrangler/
+
+# third-party program binaries for tests — fetch with scripts/fetch-fixtures.sh
+tests/fixtures/*.so
