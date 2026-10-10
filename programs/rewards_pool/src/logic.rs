@@ -41,10 +41,12 @@ pub fn fee(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
     if asset.kind == AssetKind::Nft || pool.status != PoolStatus::Settled || rank_one(pool).is_none() {
         return Ok(0);
     }
-    let f = (asset.boost_received as u128)
-        .checked_mul(pool.fee_bps as u128)
-        .ok_or(RewardsError::MathOverflow)?
-        / BPS_DENOMINATOR as u128;
+    fee_on(asset.boost_received, pool.fee_bps)
+}
+
+/// floor(amount × fee_bps / 10_000) in u128 — the one fee formula (03 §3).
+pub fn fee_on(amount: u64, fee_bps: u16) -> Result<u64> {
+    let f = (amount as u128).checked_mul(fee_bps as u128).ok_or(RewardsError::MathOverflow)? / BPS_DENOMINATOR as u128;
     u64::try_from(f).map_err(|_| error!(RewardsError::MathOverflow))
 }
 
@@ -97,10 +99,7 @@ pub fn boost_refundable(pool: &MatchPool) -> bool {
 
 /// §5.14 — everything this asset owes has been paid, returned, collected or refunded.
 pub fn asset_done(pool: &MatchPool, asset: &PoolAsset) -> Result<bool> {
-    match pool.status {
-        PoolStatus::Settled | PoolStatus::Cancelled => {}
-        _ => return Ok(false),
-    }
+    require_terminal(pool)?;
     for i in 0..pool.winners.len() {
         if payout(pool, asset, i)? > 0 && asset.claimed & (1u32 << i) == 0 {
             return Ok(false);
@@ -119,25 +118,10 @@ pub fn asset_done(pool: &MatchPool, asset: &PoolAsset) -> Result<bool> {
     Ok(true)
 }
 
-/// Value the asset still owes to someone (for stray detection on close).
-pub fn outstanding(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
-    let mut owed: u64 = 0;
-    for i in 0..pool.winners.len() {
-        if asset.claimed & (1u32 << i) == 0 {
-            owed = owed.checked_add(payout(pool, asset, i)?).ok_or(RewardsError::MathOverflow)?;
-        }
-    }
-    if !asset.base_returned {
-        owed = owed.checked_add(unclaimed_base(pool, asset)?).ok_or(RewardsError::MathOverflow)?;
-    }
-    if boost_refundable(pool) {
-        owed = owed
-            .checked_add(asset.boost_received.saturating_sub(asset.boost_refunded))
-            .ok_or(RewardsError::MathOverflow)?;
-    } else if !asset.fee_collected {
-        owed = owed.checked_add(fee(pool, asset)?).ok_or(RewardsError::MathOverflow)?;
-    }
-    Ok(owed)
+/// §6: exits (refund / return / close) only once the pool is Settled or Cancelled.
+pub fn require_terminal(pool: &MatchPool) -> Result<()> {
+    require!(matches!(pool.status, PoolStatus::Settled | PoolStatus::Cancelled), RewardsError::InvalidStatus);
+    Ok(())
 }
 
 /// Rent-exempt minimum of a 0-byte account (Q-11 / F9).

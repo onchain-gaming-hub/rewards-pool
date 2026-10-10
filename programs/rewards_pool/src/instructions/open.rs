@@ -13,7 +13,8 @@ use platform_core::{
 };
 
 fn validate_payouts(payout_amounts: &[u64], min_each: u64) -> Result<u64> {
-    require!(!payout_amounts.is_empty(), RewardsError::InvalidPayoutAmount);
+    // §10: a base variant with no ranks = base accounts without a base.
+    require!(!payout_amounts.is_empty(), RewardsError::BaseAccountsMismatch);
     require!(payout_amounts.len() <= MAX_WINNERS, RewardsError::TooManyRanks);
     let mut sum: u64 = 0;
     for a in payout_amounts {
@@ -37,6 +38,7 @@ fn init_pool(
     base_asset: Option<Pubkey>,
     base_source: Pubkey,
 ) -> Result<()> {
+    require!(fee_bps <= MAX_FEE_BPS, RewardsError::FeeTooHigh);
     pool.rent_payer = game_authority;
     pool.version = ACCOUNT_VERSION;
     pool.game_program = game_program;

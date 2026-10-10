@@ -83,7 +83,7 @@ pub fn handle_boost_sol(ctx: Context<BoostSol>, amount: u64, message: String) ->
     require!(message.len() <= MAX_MESSAGE_BYTES, RewardsError::MessageTooLong);
     require!(amount >= MIN_SOL_BOOST, RewardsError::BoostTooSmall);
     // Net of fee must stay receivable by an empty wallet (fee_bps can be up to 20% — C2).
-    let fee = (amount as u128 * ctx.accounts.match_pool.fee_bps as u128 / BPS_DENOMINATOR as u128) as u64;
+    let fee = logic::fee_on(amount, ctx.accounts.match_pool.fee_bps)?;
     require!(amount - fee >= logic::min_rent()?, RewardsError::BoostNetBelowRentExempt);
 
     // Amount the program moves itself (never a lamport delta: init_if_needed rent would count).

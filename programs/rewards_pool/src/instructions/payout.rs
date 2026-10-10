@@ -295,6 +295,7 @@ pub fn handle_return_base_token(ctx: Context<ReturnBaseToken>) -> Result<()> {
 // ═════════════════════════ refund_boost ═════════════════════════
 
 fn take_refund(pool: &mut MatchPool, asset: &mut PoolAsset, receipt: &BoostReceipt) -> Result<u64> {
+    logic::require_terminal(pool)?;
     require!(logic::boost_refundable(pool), RewardsError::RefundNotAllowed);
     require!(receipt.asset_id == asset.asset_id, RewardsError::ReceiptAssetMismatch);
     asset.boost_refunded = asset.boost_refunded.checked_add(receipt.amount).ok_or(RewardsError::MathOverflow)?;

@@ -26,5 +26,8 @@ pub const POOL_EXPIRY_SECS: i64 = 7 * 86_400;
 pub const MIN_SOL_BOOST: u64 = 1_000_000;
 pub const ACCOUNT_VERSION: u8 = 1;
 pub const BPS_DENOMINATOR: u64 = 10_000;
+/// Defence in depth: platform-core caps boost_fee_bps at 2,000 (C2); a higher snapshot
+/// would make rank 1's payout underflow and lock the boost.
+pub const MAX_FEE_BPS: u16 = 2_000;
 /// Token Metadata program — only used to derive the master edition PDA (§3.4).
 pub const TOKEN_METADATA_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");

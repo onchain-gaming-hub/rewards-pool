@@ -71,4 +71,6 @@ pub enum RewardsError {
     NotBaseAsset,
     #[msg("match_pool is not the PDA of (game_program, room_id)")]
     WrongMatchPool, // 6033
+    #[msg("snapshotted boost fee above MAX_FEE_BPS")]
+    FeeTooHigh, // 6034
 }

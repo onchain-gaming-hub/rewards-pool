@@ -18,7 +18,7 @@ fn open_pool_guards() {
     let mut w = world();
     let rent0 = w.svm.minimum_balance_for_rent_exemption(0);
     assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![rent0 - 1])], &[&w.payer]), 6027); // PayoutBelowRentExempt (F9)
-    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![])], &[&w.payer]), 6003); // InvalidPayoutAmount
+    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![])], &[&w.payer]), 6026); // BaseAccountsMismatch (§10)
     assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![0])], &[&w.payer]), 6003);
     assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![1_000_000; 33])], &[&w.payer]), 6002); // TooManyRanks
 
