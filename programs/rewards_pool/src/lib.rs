@@ -1,9 +1,9 @@
-//! rewards-pool — per-match prize pools for blockchain-games-hub (specs/spec-v2.md).
+//! rewards-pool — per-match prize pools for blockchain-games-hub.
 //!
 //! Games CPI `open_pool*` / `lock_boosts` / `settle` / `cancel` signed by their
-//! `[b"game_authority"]` PDA (R1). Anyone boosts; everything boosted goes to rank 1
-//! after the snapshotted platform fee (R9 · D6). Claims are permissionless with pinned
-//! destinations and never expire (R12).
+//! `[b"game_authority"]` PDA. Anyone boosts; everything boosted goes to rank 1
+//! after the snapshotted platform fee. Claims are permissionless with pinned
+//! destinations and never expire.
 #![allow(unexpected_cfgs)]
 #![allow(clippy::result_large_err)]
 
@@ -49,7 +49,7 @@ pub mod rewards_pool {
         instructions::game::handle_cancel(ctx, room_id)
     }
 
-    // ── boosters (own wallet — W21) ──
+    // ── boosters (own wallet) ──
     pub fn boost_sol(ctx: Context<BoostSol>, amount: u64, message: String) -> Result<()> {
         instructions::boost::handle_boost_sol(ctx, amount, message)
     }

@@ -1,4 +1,4 @@
-//! Layout contract (spec-v2 §3): sizes and fixed offsets other programs / indexers rely on.
+//! Layout contract: sizes and fixed offsets other programs / indexers rely on.
 use {
     anchor_lang::{prelude::Pubkey, AccountSerialize, Space},
     rewards_pool::state::*,

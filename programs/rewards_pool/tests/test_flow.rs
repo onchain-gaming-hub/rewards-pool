@@ -1,4 +1,4 @@
-//! End-to-end money flows (spec-v2 §4.4 invariant · POC §13 #8). Every test ends with
+//! End-to-end money flows (conservation invariant). Every test ends with
 //! every rewards-pool account closed and every unit accounted for.
 mod common;
 use {
@@ -9,7 +9,7 @@ use {
     solana_signer::Signer,
 };
 
-const BASE: [u64; 3] = [10_000_000, 5_000_000, 2_000_000]; // SOL, each ≥ rent-exempt (F9)
+const BASE: [u64; 3] = [10_000_000, 5_000_000, 2_000_000]; // SOL, each ≥ rent-exempt
 
 fn fee(x: u64) -> u64 {
     x * FEE_BPS as u64 / 10_000
@@ -150,7 +150,7 @@ fn cancel_returns_everything_and_later_game_calls_are_noops() {
     assert_eq!(outcome(send(&mut w.svm, &[finish(4, vec![Some(booster.pubkey())])], &[&w.payer])), 13, "closed pool → NoOp(Closed)");
 }
 
-/// Q-12: expire after 7 days → refunds · settle afterwards = NoOp.
+/// Expire after 7 days → refunds · settle afterwards = NoOp.
 #[test]
 fn expire_pool_after_seven_days() {
     let mut w = world();
@@ -167,7 +167,7 @@ fn expire_pool_after_seven_days() {
     assert!(gone(&w.svm, &pool_pda(5)));
 }
 
-/// settle with only bots → Cancelled(NoEligibleWinner), Ok (R13 — never errors in the game's tx).
+/// settle with only bots → Cancelled(NoEligibleWinner), Ok (never errors in the game's tx).
 #[test]
 fn all_none_winners_cancel_inside_settle() {
     let mut w = world();
@@ -177,7 +177,7 @@ fn all_none_winners_cancel_inside_settle() {
     assert_eq!(pool(&w.svm, 6).status, PoolStatus::Cancelled);
 }
 
-/// Game Suspended / mint disallowed after the pool started: nothing gets locked (03 §1 rule 3).
+/// Game Suspended / mint disallowed after the pool started: nothing gets locked.
 #[test]
 fn suspend_and_disallow_after_start_do_not_lock_funds() {
     let mut w = world();
@@ -235,7 +235,7 @@ fn pausable_token_2022_mint_can_be_boosted() {
     assert_eq!(vault.data.len(), 170, "165 + PausableAccount");
 }
 
-/// Q-10/F3: no ATA → claim_token fails (rights persist) → claim_token_with_ata with payer = winner.
+/// No ATA → claim_token fails (rights persist) → claim_token_with_ata with payer = winner.
 #[test]
 fn claim_with_ata_when_winner_has_no_ata() {
     let mut w = world();
@@ -246,7 +246,7 @@ fn claim_with_ata_when_winner_has_no_ata() {
     ok(send(&mut w.svm, &[boost_token(11, &booster.pubkey(), &tok, &TOKEN, 1_000, "")], &[&booster]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(11, vec![Some(a.pubkey())])], &[&w.payer])), 0);
     assert!(send(&mut w.svm, &[claim_token(11, 0, &a.pubkey(), &tok, &TOKEN)], &[&w.payer]).is_err(), "no ATA yet");
-    // payer == winner (same key in a mut Signer and a read-only field — POC §13 #5)
+    // payer == winner (same key in a mut Signer and a read-only field)
     ok(send(&mut w.svm, &[claim_token_with_ata(11, 0, &a.pubkey(), &a.pubkey(), &tok, &TOKEN)], &[&a]));
     assert_eq!(token_balance(&w.svm, &ata(&a.pubkey(), &tok, &TOKEN)), 990);
 }

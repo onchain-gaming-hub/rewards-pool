@@ -1,4 +1,4 @@
-//! Negative paths: each spec-v2 §10 error fires where the spec says it does.
+//! Negative paths: each error fires where it should.
 mod common;
 use {
     anchor_lang::{
@@ -17,8 +17,8 @@ use {
 fn open_pool_guards() {
     let mut w = world();
     let rent0 = w.svm.minimum_balance_for_rent_exemption(0);
-    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![rent0 - 1])], &[&w.payer]), 6027); // PayoutBelowRentExempt (F9)
-    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![])], &[&w.payer]), 6026); // BaseAccountsMismatch (§10)
+    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![rent0 - 1])], &[&w.payer]), 6027); // PayoutBelowRentExempt
+    assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![])], &[&w.payer]), 6026); // BaseAccountsMismatch
     assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![0])], &[&w.payer]), 6003);
     assert_err(&send(&mut w.svm, &[start_match_sol(1, vec![1_000_000; 33])], &[&w.payer]), 6002); // TooManyRanks
 
@@ -74,7 +74,7 @@ fn boost_guards() {
 #[test]
 fn boost_sol_net_of_fee_must_stay_rent_exempt() {
     let mut w = world();
-    put_config(&mut w.svm, 2_000); // 20% (C2 ceiling)
+    put_config(&mut w.svm, 2_000); // 20% (platform ceiling)
     let b = funded(&mut w.svm);
     ok(send(&mut w.svm, &[start_match(1)], &[&w.payer]));
     // 1_000_000 - 20% = 800_000 < LiteSVM rent-exempt (890_880)
@@ -214,7 +214,7 @@ fn token_metadata_nft_is_boosted_as_nft_and_paid_to_rank_one() {
 
     ok(send(&mut w.svm, &[start_match(1)], &[&w.payer]));
     ok(send(&mut w.svm, &[boost_token(1, &bk, &mint, &TOKEN, 1, "rare!")], &[&booster]));
-    assert_eq!(asset(&w.svm, &asset_pda(&pool_pda(1), &mint)).kind, AssetKind::Nft, "TM NFT classified as Nft (spec §3.4)");
+    assert_eq!(asset(&w.svm, &asset_pda(&pool_pda(1), &mint)).kind, AssetKind::Nft, "TM NFT classified as Nft");
     assert_eq!(outcome(send(&mut w.svm, &[finish(1, vec![Some(a.pubkey())])], &[&w.payer])), 0);
     ok(send(&mut w.svm, &[claim_token_with_ata(1, 0, &a.pubkey(), &a.pubkey(), &mint, &TOKEN)], &[&a]));
     assert_eq!(token_balance(&w.svm, &ata(&a.pubkey(), &mint, &TOKEN)), 1);

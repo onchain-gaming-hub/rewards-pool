@@ -1,7 +1,7 @@
 [package]
 name = "mock_game"
 version = "0.0.0"
-description = "TEST ONLY — never deploy. A stand-in game that CPIs into rewards-pool via declare_program! (spec-v2 §7, POC §13 #1 #4)."
+description = "TEST ONLY — never deploy. A stand-in game that CPIs into rewards-pool via declare_program!."
 edition.workspace = true
 rust-version.workspace = true
 publish = false

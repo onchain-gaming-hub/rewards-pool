@@ -14,7 +14,7 @@ An Anchor program for **blockchain-games-hub** that holds and pays out the rewar
 |---|---|
 | Program (devnet) | `HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW` · deploy slot 509454201 |
 | IDL | [`idls/rewards_pool.json`](idls/rewards_pool.json) v1.0.0 |
-| Spec | [`specs/spec-v2.md`](specs/spec-v2.md) (full contract · written in Thai) |
+| Integration guide | [`SKILL.md`](SKILL.md) (accounts, PDAs, CPI, errors, costs) |
 | Example game | [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs) (test only — do not deploy) |
 
 ## Build / test

@@ -1,4 +1,4 @@
-//! Accounts (spec-v2 §3). Every account: discriminator · `rent_payer` at offset 8 ·
+//! Accounts. Every account: discriminator · `rent_payer` at offset 8 ·
 //! `version` · `_reserved`. Never reorder fields, seeds or enum variants.
 use crate::constants::*;
 use anchor_lang::prelude::*;

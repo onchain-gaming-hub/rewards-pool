@@ -33,7 +33,7 @@ pub const TOKEN_2022: Pubkey = anchor_spl::token_2022::ID;
 pub const ATA_PROGRAM: Pubkey = anchor_spl::associated_token::ID;
 pub const PC: Pubkey = rewards_pool::platform_core::ID;
 pub const GAME: Pubkey = mock_game::ID;
-pub const FEE_BPS: u16 = 100; // 1% (DECISIONS rev 7)
+pub const FEE_BPS: u16 = 100; // 1% (devnet PlatformConfig)
 pub const TOKEN_ACCOUNT_LEN: usize = 165;
 
 pub fn program_so(name: &str) -> Vec<u8> {
@@ -127,7 +127,7 @@ pub fn put_config(svm: &mut LiteSVM, boost_fee_bps: u16) {
     put(svm, treasury_pda().0, PC, t);
 }
 
-/// platform-core `allow_mint`: AllowedMint PDA + Treasury ATA (X3, skipped for pure 1/1).
+/// platform-core `allow_mint`: AllowedMint PDA + Treasury ATA (skipped for pure 1/1).
 pub fn allow_mint(svm: &mut LiteSVM, payer: &Keypair, mint: &Pubkey, tp: &Pubkey, decimals: u8, treasury_ata: bool) {
     let bump = Pubkey::find_program_address(&[PC_BOOST_MINT_SEED, mint.as_ref()], &PC).1;
     let mut d = disc("AllowedMint").to_vec();

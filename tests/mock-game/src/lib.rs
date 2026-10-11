@@ -1,9 +1,9 @@
 //! TEST ONLY — never deploy.
 //!
 //! A stand-in game program that talks to rewards-pool exactly like a real game would
-//! (spec-v2 §7): only through `declare_program!` + `idls/rewards_pool.json`, signing
+//!: only through `declare_program!` + `idls/rewards_pool.json`, signing
 //! with its own `[b"game_authority"]` PDA (System-owned, holds SOL for rent).
-//! This is the pattern handed to maintainer.
+//! This is the same pattern any game uses.
 #![allow(unexpected_cfgs)]
 
 use anchor_lang::prelude::*;

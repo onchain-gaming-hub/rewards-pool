@@ -1,4 +1,4 @@
-//! §5.3–5.5 lock_boosts / settle / cancel — called by the game via CPI.
+//! lock_boosts / settle / cancel — called by the game via CPI.
 //! Never error on pool *state*: return `CpiOutcome` instead (an error would abort the
 //! game's end-of-match tx). `match_pool` is an UncheckedAccount so a closed (empty)
 //! pool yields `NoOp(Closed)`.
@@ -84,7 +84,7 @@ pub fn handle_settle(ctx: Context<GameCall>, room_id: u64, winners: Vec<Option<P
         }
     }
     let outcome = if winners.iter().all(|w| w.is_none()) {
-        // R13: no eligible winner = cancel.
+        // No eligible winner = cancel.
         pool.status = PoolStatus::Cancelled;
         emit!(PoolCancelled { match_pool: key, reason: CancelReason::NoEligibleWinner });
         CpiOutcome::Cancelled(CancelReason::NoEligibleWinner)
@@ -113,7 +113,7 @@ pub fn handle_cancel(ctx: Context<GameCall>, room_id: u64) -> Result<CpiOutcome>
     Ok(CpiOutcome::Cancelled(CancelReason::ByGame))
 }
 
-// ─────────────── §5.12 expire_pool (anyone) ───────────────
+// ─────────────── expire_pool (anyone) ───────────────
 
 #[derive(Accounts)]
 pub struct ExpirePool<'info> {

@@ -6,7 +6,7 @@ description: How to integrate a game (Anchor program) with the blockchain-games-
 # rewards-pool — Integration Skill (for games)
 
 > The program is already deployed on **devnet** — your game can CPI into it directly; you do not deploy rewards-pool yourself.
-> Sources: [`specs/spec-v2.md`](specs/spec-v2.md) (full contract) · [`idls/rewards_pool.json`](idls/rewards_pool.json) · a working example game: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs)
+> Sources: [`idls/rewards_pool.json`](idls/rewards_pool.json) · a working example game: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs)
 > ⚠️ devnet only
 
 ---
@@ -313,7 +313,7 @@ The order depends on the pool's outcome (each step runs per relevant account):
 | Anchor 3012 | `AccountNotInitialized` | a required account does not exist yet (winner ATA, AllowedMint, Treasury ATA for an NFT) |
 | Token 17 | `AccountFrozen` | pNFT / frozen account (pNFTs are not supported) |
 
-Full list 6000–6034: `idls/rewards_pool.json` (`errors`) · spec-v2 §10
+Full list 6000–6034: `idls/rewards_pool.json` (`errors`)
 
 ---
 

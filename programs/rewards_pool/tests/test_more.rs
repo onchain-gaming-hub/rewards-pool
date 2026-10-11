@@ -104,7 +104,7 @@ fn receipt_of_another_asset_and_token_program_mismatch_are_rejected() {
 #[test]
 fn winners_are_truncated_to_32_and_duplicate_pubkeys_claim_by_index() {
     let mut w = world();
-    let agent = funded(&mut w.svm); // W14: one wallet in several slots
+    let agent = funded(&mut w.svm); // one wallet in several slots
     ok(send(&mut w.svm, &[start_match_sol(5, vec![1_000_000, 1_000_000, 1_000_000])], &[&w.payer]));
     let mut winners = vec![Some(agent.pubkey()); 3];
     winners.extend((0..37).map(|_| Some(Pubkey::new_unique())));
@@ -189,7 +189,7 @@ fn nft_without_treasury_ata_cannot_be_fee_collected_and_fee_zero_is_fine() {
     ok(send(&mut w.svm, &[start_match(10)], &[&w.payer]));
     ok(send(&mut w.svm, &[boost_token(10, &booster.pubkey(), &n, &TOKEN, 1, ""), boost_sol(10, &booster.pubkey(), SOL / 100, "")], &[&booster]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(10, vec![Some(a.pubkey())])], &[&w.payer])), 0);
-    assert_err(&send(&mut w.svm, &[collect_fee_token(10, &n, &TOKEN)], &[&w.payer]), 3012); // spec §5.6
+    assert_err(&send(&mut w.svm, &[collect_fee_token(10, &n, &TOKEN)], &[&w.payer]), 3012);
     let t0 = lamports(&w.svm, &treasury_pda().0);
     ok(send(&mut w.svm, &[collect_fee_sol(10)], &[&w.payer]));
     assert_eq!(lamports(&w.svm, &treasury_pda().0), t0, "fee 0 → flag only");
@@ -341,7 +341,7 @@ fn unpayable_winner_keys_are_treated_as_none() {
     ok(send(&mut w.svm, &[claim_sol(20, 2, &c.pubkey()), return_base_sol(20)], &[&w.payer]));
     assert_eq!(lamports(&w.svm, &game_authority()) - g0, 2_000_000, "two unpayable slots → base back to the game");
     ok(send(&mut w.svm, &[close_sol_asset(20, &game_authority()), close_pool(20)], &[&w.payer]));
-    // Only unpayable keys → R13 cancel.
+    // Only unpayable keys → cancel.
     ok(send(&mut w.svm, &[start_match(21)], &[&w.payer]));
     assert_eq!(outcome(send(&mut w.svm, &[finish(21, vec![Some(Pubkey::default())])], &[&w.payer])), 21);
 }

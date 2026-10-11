@@ -1,4 +1,4 @@
-//! Error codes — append-only, numbers match spec-v2 §10 (6000 + index).
+//! Error codes — append-only (6000 + index).
 use anchor_lang::prelude::*;
 
 #[error_code]

@@ -1,5 +1,5 @@
-//! §5.13 close_receipt · §5.14 close_sol_asset / close_token_asset · §5.15 close_pool.
-//! Permissionless; rent always goes back to the recorded rent_payer (D11).
+//! close_receipt · close_sol_asset / close_token_asset · close_pool.
+//! Permissionless; rent always goes back to the recorded rent_payer.
 use crate::{constants::*, errors::RewardsError, events::PoolClosed, logic, state::*};
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{self, Burn, CloseAccount, Mint, TokenAccount, TokenInterface};
@@ -108,7 +108,7 @@ pub fn handle_close_token_asset(ctx: Context<CloseTokenAsset>) -> Result<()> {
 pub struct ClosePool<'info> {
     #[account(mut, has_one = rent_payer, close = rent_payer)]
     pub match_pool: Box<Account<'info, MatchPool>>,
-    /// CHECK: = match_pool.rent_payer (game_authority — Q-13).
+    /// CHECK: = match_pool.rent_payer (game_authority).
     #[account(mut)]
     pub rent_payer: UncheckedAccount<'info>,
 }

@@ -1,10 +1,10 @@
-//! Pure money logic (spec-v2 §3.4, §4). Every instruction that moves value goes through
-//! these functions so the §4.4 invariant has one definition.
+//! Pure money logic. Every instruction that moves value goes through
+//! these functions so the conservation invariant has one definition.
 use crate::{constants::*, errors::RewardsError, state::*};
 use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::token_interface::Mint;
 
-/// §3.4 — NFT = 1/1 whose supply can never grow (no authority, or Token Metadata's
+/// NFT = 1/1 whose supply can never grow (no authority, or Token Metadata's
 /// master edition PDA). Superset of platform-core `is_pure_one_of_one`.
 pub fn classify(mint: &Mint, mint_key: &Pubkey) -> AssetKind {
     let edition = Pubkey::find_program_address(
@@ -36,7 +36,7 @@ pub fn is_base(pool: &MatchPool, asset: &PoolAsset) -> bool {
     pool.base_asset == Some(asset.asset_id)
 }
 
-/// §4.3 — floor, once per asset, boost only, never on NFT, only when rank 1 is paid.
+/// Floor, once per asset, boost only, never on NFT, only when rank 1 is paid.
 pub fn fee(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
     if asset.kind == AssetKind::Nft || pool.status != PoolStatus::Settled || rank_one(pool).is_none() {
         return Ok(0);
@@ -44,13 +44,13 @@ pub fn fee(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
     fee_on(asset.boost_received, pool.fee_bps)
 }
 
-/// floor(amount × fee_bps / 10_000) in u128 — the one fee formula (03 §3).
+/// floor(amount × fee_bps / 10_000) in u128 — the one fee formula.
 pub fn fee_on(amount: u64, fee_bps: u16) -> Result<u64> {
     let f = (amount as u128).checked_mul(fee_bps as u128).ok_or(RewardsError::MathOverflow)? / BPS_DENOMINATOR as u128;
     u64::try_from(f).map_err(|_| error!(RewardsError::MathOverflow))
 }
 
-/// §4.4 — what `winners[index]` receives of `asset`. 0 unless Settled.
+/// What `winners[index]` receives of `asset`. 0 unless Settled.
 pub fn payout(pool: &MatchPool, asset: &PoolAsset, index: usize) -> Result<u64> {
     if pool.status != PoolStatus::Settled || winner_at(pool, index).is_none() {
         return Ok(0);
@@ -68,7 +68,7 @@ pub fn payout(pool: &MatchPool, asset: &PoolAsset, index: usize) -> Result<u64> 
     base.checked_add(boost).ok_or_else(|| error!(RewardsError::MathOverflow))
 }
 
-/// §4.4 — base that nobody receives (goes back to `base_source`).
+/// Base that nobody receives (goes back to `base_source`).
 pub fn unclaimed_base(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
     if !is_base(pool, asset) {
         return Ok(0);
@@ -88,7 +88,7 @@ pub fn unclaimed_base(pool: &MatchPool, asset: &PoolAsset) -> Result<u64> {
     }
 }
 
-/// §4.4 — boost goes back to boosters when the pool is Cancelled or has no rank 1.
+/// Boost goes back to boosters when the pool is Cancelled or has no rank 1.
 pub fn boost_refundable(pool: &MatchPool) -> bool {
     match pool.status {
         PoolStatus::Cancelled => true,
@@ -97,7 +97,7 @@ pub fn boost_refundable(pool: &MatchPool) -> bool {
     }
 }
 
-/// §5.14 — everything this asset owes has been paid, returned, collected or refunded.
+/// Everything this asset owes has been paid, returned, collected or refunded.
 pub fn asset_done(pool: &MatchPool, asset: &PoolAsset) -> Result<bool> {
     require_terminal(pool)?;
     for i in 0..pool.winners.len() {
@@ -118,13 +118,13 @@ pub fn asset_done(pool: &MatchPool, asset: &PoolAsset) -> Result<bool> {
     Ok(true)
 }
 
-/// §6: exits (refund / return / close) only once the pool is Settled or Cancelled.
+/// Exits (refund / return / close) only once the pool is Settled or Cancelled.
 pub fn require_terminal(pool: &MatchPool) -> Result<()> {
     require!(matches!(pool.status, PoolStatus::Settled | PoolStatus::Cancelled), RewardsError::InvalidStatus);
     Ok(())
 }
 
-/// Rent-exempt minimum of a 0-byte account (Q-11 / F9).
+/// Rent-exempt minimum of a 0-byte account.
 pub fn min_rent() -> Result<u64> {
     Ok(Rent::get()?.minimum_balance(0))
 }

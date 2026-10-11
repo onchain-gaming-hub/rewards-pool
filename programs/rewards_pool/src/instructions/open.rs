@@ -1,4 +1,4 @@
-//! §5.1 open_pool / open_pool_sol / open_pool_token — called by the game via CPI.
+//! open_pool / open_pool_sol / open_pool_token — called by the game via CPI.
 use crate::{
     constants::*, errors::RewardsError, events::PoolOpened, logic, platform_core, state::*,
 };
@@ -13,7 +13,7 @@ use platform_core::{
 };
 
 fn validate_payouts(payout_amounts: &[u64], min_each: u64) -> Result<u64> {
-    // §10: a base variant with no ranks = base accounts without a base.
+    // A base variant with no ranks = base accounts without a base.
     require!(!payout_amounts.is_empty(), RewardsError::BaseAccountsMismatch);
     require!(payout_amounts.len() <= MAX_WINNERS, RewardsError::TooManyRanks);
     let mut sum: u64 = 0;
@@ -143,7 +143,7 @@ pub struct OpenPoolSol<'info> {
 }
 
 pub fn handle_open_pool_sol(ctx: Context<OpenPoolSol>, room_id: u64, payout_amounts: Vec<u64>) -> Result<()> {
-    let total = validate_payouts(&payout_amounts, logic::min_rent()?)?; // F9 (a)
+    let total = validate_payouts(&payout_amounts, logic::min_rent()?)?; // each payout ≥ rent-exempt
     let ga = ctx.accounts.game_authority.key();
     system_program::transfer(
         CpiContext::new(

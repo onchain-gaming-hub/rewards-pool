@@ -1,4 +1,4 @@
-//! Events (`emit!` — Q-9). Program log: may be truncated / not retained by every RPC.
+//! Events (`emit!`). Program log: may be truncated / not retained by every RPC.
 use crate::state::CancelReason;
 use anchor_lang::prelude::*;
 

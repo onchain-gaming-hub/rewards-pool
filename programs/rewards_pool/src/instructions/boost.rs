@@ -1,4 +1,4 @@
-//! §5.2 boost_sol / boost_token — anyone, own wallet (W21). All boosts go to rank 1 (R9).
+//! boost_sol / boost_token — anyone, own wallet. All boosts go to rank 1.
 use crate::{constants::*, errors::RewardsError, events::BoostAdded, logic, platform_core, state::*};
 use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface, TransferChecked};
@@ -82,7 +82,7 @@ pub struct BoostSol<'info> {
 pub fn handle_boost_sol(ctx: Context<BoostSol>, amount: u64, message: String) -> Result<()> {
     require!(message.len() <= MAX_MESSAGE_BYTES, RewardsError::MessageTooLong);
     require!(amount >= MIN_SOL_BOOST, RewardsError::BoostTooSmall);
-    // Net of fee must stay receivable by an empty wallet (fee_bps can be up to 20% — C2).
+    // Net of fee must stay receivable by an empty wallet (fee_bps can be up to 20%).
     let fee = logic::fee_on(amount, ctx.accounts.match_pool.fee_bps)?;
     let net = amount.checked_sub(fee).ok_or(RewardsError::MathOverflow)?;
     require!(net >= logic::min_rent()?, RewardsError::BoostNetBelowRentExempt);

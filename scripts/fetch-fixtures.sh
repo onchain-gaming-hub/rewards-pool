@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test fixtures that are third-party program binaries (not committed).
-# mpl_token_metadata.so: Token Metadata program dumped from devnet (POC §13 #2).
+# mpl_token_metadata.so: Token Metadata program dumped from devnet.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
