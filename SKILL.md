@@ -7,7 +7,7 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 
 > program ที่ deploy บน **devnet** แล้ว — เกมของคุณ CPI เข้ามาได้เลย ไม่ต้อง deploy rewards-pool เอง
 > ที่มา: [`specs/spec-v2.md`](specs/spec-v2.md) (สัญญาเต็ม) · [`idls/rewards_pool.json`](idls/rewards_pool.json) · ตัวอย่างเกมที่รันจริง: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs) · มติ: `../DECISIONS.md` (R1–R33)
-> ⚠️ ทั้งหมดผ่าน test (LiteSVM 41/41) + AI review แล้ว แต่**ยังไม่มี audit ภายนอก** และยังไม่ได้ทดสอบ end-to-end บน devnet กับเกมจริง — devnet เท่านั้น
+> ⚠️ ผ่าน test (LiteSVM 41/41) + AI review แล้ว แต่**ยังไม่มี audit ภายนอก** — devnet เท่านั้น
 
 ---
 
@@ -251,7 +251,7 @@ pub struct GameCall<'info> {
 
 - `index` = ตำแหน่งใน `MatchPool.winners` (ไม่ใช่ pubkey) · 1 claim = 1 (index, asset)
 - **Claim All**: ใส่หลาย claim ใน tx เดียว — วัดได้ **7 claim/tx** (mint เดียวกัน) · **5** (mint ต่างกัน) · tx atomic → simulate แล้วตัดตัวที่จะ fail ออกก่อน · ได้ `AlreadyClaimed` (6015) → อ่าน state ใหม่แล้ว build ใหม่
-- **ผ่าน relayer** (ผู้เล่น social login): client ทำเครื่องหมาย account `winner` เป็น signer · relayer ลงทะเบียน 3 ix นี้ในโปรเจคของ hub (ยังไม่เปิด — รอ hub FE)
+- **ผ่าน relayer** (ผู้เล่น social login): client ทำเครื่องหมาย account `winner` เป็น signer (3 ix ข้างบนคือที่ relayer sponsor)
 - ไม่มี ATA → `claim_token` ได้ Anchor 3012 → ใช้ `claim_token_with_ata` (ผู้เล่นต้องมี SOL ≥ rent ATA ≈ 0.0015 SOL บน devnet) หรือรอ — **สิทธิ์ไม่หาย**
 - SOL: ถ้ายอดหลังรับยังต่ำกว่า rent-exempt ของ wallet → fail และรอได้
 
