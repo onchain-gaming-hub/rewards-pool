@@ -6,7 +6,7 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 # rewards-pool — Integration Skill (สำหรับเกม)
 
 > program ที่ deploy บน **devnet** แล้ว — เกมของคุณ CPI เข้ามาได้เลย ไม่ต้อง deploy rewards-pool เอง
-> ที่มา: [`specs/spec-v2.md`](specs/spec-v2.md) (สัญญาเต็ม) · [`idls/rewards_pool.json`](idls/rewards_pool.json) · ตัวอย่างเกมที่รันจริง: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs) · มติ: `../DECISIONS.md` (R1–R33)
+> ที่มา: [`specs/spec-v2.md`](specs/spec-v2.md) (สัญญาเต็ม) · [`idls/rewards_pool.json`](idls/rewards_pool.json) · ตัวอย่างเกมที่รันจริง: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs)
 > ⚠️ devnet เท่านั้น
 
 ---
@@ -14,10 +14,10 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 ## 0. TL;DR
 
 1. ให้ Admin ของ platform-core **ลงทะเบียนเกม** (`GameEntry` Active) — platform-core จะบันทึก `game_authority` = PDA `[b"game_authority"]` ของ program คุณ
-2. **เติม SOL ให้ `game_authority` PDA** — มันจ่าย rent ของ pool (~0.0087 SOL ต่อ match ที่เปิดพร้อมกันบน devnet) และได้คืนตอนปิด
+2. **เติม SOL ให้ `game_authority` PDA** — มันจ่าย rent ของทุก account ที่เกมเปิด (ต่อ match ที่ยังไม่ปิด บน devnet): ไม่มี base ≈ **0.0087 SOL** · base เป็น SOL ≈ **0.0104 SOL** · base เป็น token ≈ **0.0119 SOL** (ดู §7) — **บวกยอด base เอง** · rent ได้คืนเมื่อมีคนรัน cleanup (§5)
 3. copy `idls/rewards_pool.json` → `idls/` ของ repo คุณ แล้ว `declare_program!(rewards_pool);`
 4. ต้น match: CPI `open_pool*` · ปิดรับ boost: `lock_boosts` (ไม่บังคับ) · จบ match: CPI `settle(room_id, winners)` แล้ว **อ่าน `CpiOutcome` ทุกครั้ง** · ยกเลิก: `cancel`
-5. ที่เหลือ (boost, claim, คืนเงิน, ปิด account) เป็นของผู้เล่น / booster / crank — **เกมไม่ต้องทำอะไร**
+5. ที่เหลือ (boost, claim, คืนเงิน, ปิด account) เป็นของผู้เล่น / booster / crank — เกมไม่ต้อง CPI · แต่ **rent ค้างอยู่จนกว่าจะมีคนรัน cleanup** → แนะนำให้ Worker ของเกมเป็น crank (§5)
 
 ---
 
@@ -39,7 +39,7 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 
 ## 2. ก่อนเริ่ม (checklist)
 
-- [ ] เกมมี `GameEntry` **Active** ใน platform-core (`[b"game", <your_program_id>]` owner = platform-core) — ขอ Admin (maintainer)
+- [ ] เกมมี `GameEntry` **Active** ใน platform-core (`[b"game", <your_program_id>]` owner = platform-core) — ขอ Admin ของ platform
 - [ ] `game_authority` = `Pubkey::find_program_address(&[b"game_authority"], &your_program_id)` — เป็นบัญชี System ธรรมดา (ไม่มี data) **ที่มี SOL**
   - หลังจ่าย rent ต้องเหลือ **0 หรือ ≥ rent-exempt** (devnet 0 byte = 650,240 lamports) ไม่งั้น tx fail
 - [ ] ถ้าให้รางวัลพื้นฐานเป็น token: mint ต้องอยู่ใน **allowlist ของ platform-core** (`AllowedMint` `[b"boost_mint", mint]`) และ `game_authority` ต้องมี **ATA** ของ mint นั้นพร้อมยอดพอ
@@ -55,6 +55,12 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 # Cargo.toml ของ game program
 [dependencies]
 anchor-lang = "1.2.1"
+
+[features]   # เหมือน Anchor program ทั่วไป — ดู tests/mock-game/Cargo.toml
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+idl-build = ["anchor-lang/idl-build"]
 ```
 
 ```rust
@@ -99,6 +105,7 @@ open_pool* ──► Open ──(boost จากใครก็ได้)──�
                  │                                              │
                  └──────────────── settle ──────────────────────┴──► Settled ──► claim / ปิด account
                  └── cancel / expire_pool (7 วัน) / settle(ทุกช่อง None) ──► Cancelled ──► คืนเงินทั้งหมด
+                                                         (จาก Open หรือ BoostsLocked ก็ได้)
 ```
 
 ### 4.2 เปิด pool — เลือก 1 ใน 3
@@ -106,10 +113,11 @@ open_pool* ──► Open ──(boost จากใครก็ได้)──�
 | ix | args | accounts (w = writable · s = signer) |
 |----|------|--------------------------------------|
 | `open_pool` (ไม่มีรางวัลพื้นฐาน — มีแต่ boost) | `room_id: u64` | `game_authority`(ws) · `game_program` · `game_entry` · `config` · `match_pool`(w) · `system_program` |
-| `open_pool_sol` | `room_id`, `payout_amounts: Vec<u64>` (lamports ต่ออันดับ · **แต่ละค่า ≥ rent-exempt**) | + `pool_asset`(w) (asset_id = default) |
-| `open_pool_token` | `room_id`, `payout_amounts: Vec<u64>` (หน่วยเล็กสุดของ token ต่ออันดับ) | + `base_mint` · `allowed_mint` · `base_source`(w) = **ATA ของ game_authority** · `pool_asset`(w) · `vault`(w) · `token_program` · `associated_token_program` |
+| `open_pool_sol` | `room_id`, `payout_amounts: Vec<u64>` (lamports ต่ออันดับ · **แต่ละค่า ≥ rent-exempt**) | `game_authority`(ws) · `game_program` · `game_entry` · `config` · `match_pool`(w) · `pool_asset`(w) (asset_id = default) · `system_program` |
+| `open_pool_token` | `room_id`, `payout_amounts: Vec<u64>` (หน่วยเล็กสุดของ token ต่ออันดับ) | `game_authority`(ws) · `game_program` · `game_entry` · `config` · `match_pool`(w) · `base_mint` · `allowed_mint` · `base_source`(w) = **ATA ของ game_authority** · `pool_asset`(w) · `vault`(w) · `token_program` · `associated_token_program` · `system_program` |
 
-- `payout_amounts[i]` = รางวัลของอันดับ `i+1` (R7) · ยอดรวมถูกโอนออกจาก `game_authority` / ATA ของมันตอนเปิด · base **ไม่เสีย fee**
+- `payout_amounts[i]` = รางวัลของอันดับ `i+1` · ยอดรวมถูกโอนออกจาก `game_authority` / ATA ของมันตอนเปิด · base **ไม่เสีย fee**
+- base token: เกมต้องเติม token เข้า ATA ของ `game_authority` เอง · จะย้าย token **ออก**จาก ATA นั้น (เช่น base ที่คืนกลับมา) เกมต้องมี ix ของตัวเองที่โอนด้วย PDA signer
 - `game_program` = program id ของเกมคุณ · `game_entry` / `config` = account ของ platform-core (§1)
 - **`open_pool*` error ได้** (เกมไม่ Active, mint ไม่อยู่ใน allowlist, ยอดไม่พอ, room_id ซ้ำ) → simulate ก่อน
 
@@ -169,12 +177,12 @@ pub struct StartMatchToken<'info> {
 | `cancel` | `room_id` | เหมือนบน | `CpiOutcome` |
 
 **`winners`**:
-- `winners[0]` = อันดับ 1 → ได้ base อันดับ 1 **+ boost ทั้งหมด** (หัก fee 1% · NFT ไม่หัก) (R9)
-- `winners[i]` = อันดับ `i+1` → ได้ `payout_amounts[i]`
-- **`None`** = ช่องนี้ไม่มีผู้มีสิทธิ์ — **บอท / ผู้เล่นที่หลุด / AI Agent** (R16) → base ช่องนั้นคืนเกม · ถ้า `winners[0]` เป็น None → boost **คืน booster ทั้งหมด**
-- **เกมตัดสิน tie เอง** — ลำดับใน Vec = ผล (R15) · pubkey ซ้ำได้ (W14)
-- ทุกช่องเป็น `None` (หรือ Vec ว่าง) → pool ถูก **Cancelled** อัตโนมัติ (R13)
-- ยาวเกิน 32 → ส่วนเกินถูกตัด · `Some(Pubkey::default())` / `Some(match_pool)` → ถือเป็น None
+- `winners[0]` = อันดับ 1 → ได้ base อันดับ 1 **+ boost ทั้งหมด** (หัก fee 1% · NFT ไม่หัก)
+- `winners[i]` = อันดับ `i+1` → ได้ `payout_amounts[i]` · ช่องที่ `i ≥ payout_amounts.len()` ไม่ได้ base (index 0 ยังได้ boost)
+- **`None`** = ช่องนี้ไม่มีผู้มีสิทธิ์ — **บอท / ผู้เล่นที่หลุด / AI Agent** → base ช่องนั้นคืนเกม · ถ้า `winners[0]` เป็น None → boost **คืน booster ทั้งหมด**
+- **เกมตัดสิน tie เอง** — ลำดับใน Vec = ผล · pubkey ซ้ำได้ (claim แยกตาม index)
+- ทุกช่องเป็น `None` (หรือ Vec ว่าง) → pool ถูก **Cancelled** อัตโนมัติ
+- ยาวเกิน 32 → ส่วนเกินถูกตัด · `Some(Pubkey::default())` / `Some(match_pool)` / `Some(pool_asset ของ SOL)` → ถือเป็น None (PDA อื่นไม่ถูกจับ — ดู MUST ข้อ 5)
 
 ```rust
 pub fn finish_match(ctx: Context<GameCall>, room_id: u64, winners: Vec<Option<Pubkey>>) -> Result<()> {
@@ -232,17 +240,18 @@ pub struct GameCall<'info> {
 
 ## 5. ฝั่ง FE / ผู้เล่น / booster (เกมไม่ต้องเรียก)
 
-### Boost — booster ใช้ **wallet ของตัวเอง** จ่าย gas เอง (ไม่ผ่าน relayer — W21)
+### Boost — booster ใช้ **wallet ของตัวเอง** จ่าย gas + rent เอง
 | ix | args | accounts |
 |----|------|----------|
 | `boost_sol` | `amount` (≥ 0.001 SOL), `message` (≤ 140 **bytes**) | `booster`(ws) · `match_pool`(w) · `pool_asset`(w) · `boost_receipt`(w) · `system_program` |
 | `boost_token` | `amount` (NFT = 1), `message` | `booster`(ws) · `match_pool`(w) · `mint` · `allowed_mint` · `booster_token`(w) · `pool_asset`(w) · `vault`(w) · `boost_receipt`(w) · `token_program` · `system_program` |
 
-- ได้เฉพาะตอน **Open** · ทุก boost ไปที่**อันดับ 1** · mint ต้องอยู่ใน allowlist · pool รับได้ ≤ 8 ชนิด asset
+- ได้เฉพาะตอน **Open** · ทุก boost ไปที่**อันดับ 1** · mint ต้องอยู่ใน allowlist · boost ได้ ≤ **8 ชนิด asset ต่อ pool (ไม่นับ base)**
+- `token_program` ต้องตรงกับ owner ของ mint (SPL Token หรือ Token-2022) · ครั้งต่อไปใช้ `pool_asset.token_program` (ผิด → 6011)
 - token ที่โอนเข้า vault ตรงๆ (ไม่ผ่าน `boost_token`) จะ**ถูก burn** ตอนปิด → ให้ boost ผ่านปุ่มเท่านั้น
 - ข้อความอยู่ใน event `BoostAdded` (program log)
 
-### Claim — **ไม่ต้องมี signer** · ปลายทางล็อกไว้ที่ผู้ชนะเสมอ · ไม่มี deadline (R12, R18)
+### Claim — **ไม่ต้องมี signer** · ปลายทางล็อกไว้ที่ผู้ชนะเสมอ · ไม่มี deadline
 | ix | args | accounts |
 |----|------|----------|
 | `claim_sol` | `index: u8` | `match_pool` · `pool_asset`(w) · `winner`(w) |
@@ -256,11 +265,31 @@ pub struct GameCall<'info> {
 - SOL: ถ้ายอดหลังรับยังต่ำกว่า rent-exempt ของ wallet → fail และรอได้
 
 ### คืนเงิน booster (pool Cancelled หรือไม่มีอันดับ 1)
-`refund_boost_sol` · `refund_boost_token` · `refund_boost_token_with_ata` — ใครก็กดได้ · เงินไปที่ booster เสมอ · ไม่หัก fee
+`refund_boost_sol` · `refund_boost_token` · `refund_boost_token_with_ata` — ใครก็กดได้ · เงินไปที่ booster เสมอ · ไม่หัก fee · ปิด `BoostReceipt` ให้ด้วย (rent คืน booster)
 
-### งานเก็บกวาด (crank — ใครก็กดได้ · คืน rent ให้คนที่วาง)
-`collect_fee_sol` / `collect_fee_token` (fee เข้า Treasury) → `return_base_sol` / `return_base_token` (base ช่อง None กลับเกม) → `close_receipt` → `close_sol_asset` / `close_token_asset` → `close_pool` (**rent ของ MatchPool กลับ `game_authority`**) · `expire_pool` (pool ที่ไม่ settle เกิน 7 วัน)
-→ ถ้าเกมอยากได้ rent คืนเร็ว ให้ Game Worker เป็น crank กดชุดนี้หลัง claim ครบ
+### งานเก็บกวาด (crank — ใครก็กดได้ · rent คืนให้คนที่จ่ายไว้เสมอ)
+ลำดับขึ้นกับผลของ pool (แต่ละขั้นทำต่อ account ที่เกี่ยว):
+
+| ผล | ลำดับ |
+|----|------|
+| **Settled + มีอันดับ 1** | claim ครบ → `collect_fee_sol` / `collect_fee_token` (fee เข้า Treasury) → `return_base_sol` / `return_base_token` (base ของช่อง None กลับ `base_source`) → `close_receipt` → `close_sol_asset` / `close_token_asset` → `close_pool` |
+| **Cancelled** หรือ **Settled แต่ `winners[0]` = None** | (Settled: claim ของอันดับอื่นให้ครบ · Cancelled ไม่มี claim) → `refund_boost_*` (ทุก receipt) → `return_base_*` → `close_*_asset` → `close_pool` |
+| **ไม่ settle เกิน 7 วัน** | `expire_pool` → Cancelled → ทำตามแถวบน |
+
+- `close_pool` คืน rent ของ MatchPool ให้ `game_authority` · PoolAsset/vault ของ base ก็คืน `game_authority` · ของ boost คืนให้ booster คนแรกของ asset นั้น
+- **ไม่มีใครรันให้อัตโนมัติ** — rent ค้างจนกว่าจะมีคนกด → แนะนำให้ **Worker ของเกม**ทำ crank ชุดนี้หลัง settle (สิทธิ์ claim ไม่หายถ้ายังไม่ claim — `close_*` จะ fail จนกว่าทุกอย่างจ่ายครบ)
+
+### อ่าน state (FE)
+- `MatchPool`: `status` (Open / BoostsLocked / Settled / Cancelled) · `winners` · `payout_amounts` · `base_asset` (None = ไม่มี base · `Some(Pubkey::default())` = SOL · อื่นๆ = mint) · `fee_bps`
+- `PoolAsset`: `asset_id` (mint) · `token_program` · `kind` · `base_amount` · `boost_received` · `claimed` (bit `i` = `winners[i]` claim asset นี้แล้ว)
+- ยอดที่ `winners[i]` ได้จาก asset หนึ่ง (เมื่อ Settled และช่องไม่ใช่ None):
+  ```
+  base  = (asset เป็น base_asset && i < payout_amounts.len) ? payout_amounts[i] : 0
+  boost = (i == 0) ? boost_received - (kind == Nft ? 0 : floor(boost_received × fee_bps / 10_000)) : 0
+  ```
+- สร้าง tx claim: `mint = pool_asset.asset_id` · `token_program = pool_asset.token_program`
+- หา asset / receipt ทั้งหมดของ pool: `getProgramAccounts(RP, { filters: [{ dataSize }, { memcmp: { offset: 40, bytes: matchPool } }] })` — `PoolAsset` dataSize 203 · `BoostReceipt` dataSize 162 (ทั้งคู่เก็บ `match_pool` ที่ offset 40)
+- event (program log): `PoolOpened` · `BoostAdded` (มีข้อความ) · `PoolLocked` · `PoolSettled` · `Claimed` · `FeeCollected` · `BaseReturned` · `BoostRefunded` · `PoolCancelled` · `PoolClosed` — log ถูกตัด/หมดอายุได้ → ยึด account เป็นหลัก
 
 ---
 
@@ -274,6 +303,7 @@ pub struct GameCall<'info> {
 | 6006 | `TooManyAssets` | boost ชนิดที่ 9 |
 | 6007 | `MessageTooLong` | ข้อความ > 140 bytes |
 | 6008 / 6031 | `BoostTooSmall` / `BoostNetBelowRentExempt` | SOL boost ต่ำเกินไป |
+| 6011 | `TokenProgramMismatch` | `token_program` ไม่ตรงกับ mint / `pool_asset.token_program` |
 | 6012 | `PoolNotSettled` | claim ก่อน settle |
 | 6013 | `NoWinnerAtIndex` | index ไม่ใช่ของ winner นี้ / ช่อง None |
 | 6014 | `NothingToClaim` | อันดับนี้ไม่มีรางวัลใน asset นี้ |
@@ -287,15 +317,17 @@ pub struct GameCall<'info> {
 
 ---
 
-## 7. ต้นทุน + ตัวเลข (devnet, 2026-10-10)
+## 7. ต้นทุน + ตัวเลข (devnet, 2026-10-11)
 
 | อะไร | ค่า | ใครจ่าย / ได้คืน |
 |------|-----|------------------|
 | `MatchPool` (1,580 B) | 8,676,640 lamports (~0.0087 SOL) | `game_authority` · คืนตอน `close_pool` |
-| `PoolAsset` (203 B) + vault (165–170 B) | ตาม `getMinimumBalanceForRentExemption` | base: `game_authority` · boost: booster คนแรกของ asset · คืนตอน `close_*_asset` |
-| `BoostReceipt` (162 B) | — | booster · คืนตอน refund / `close_receipt` |
+| `PoolAsset` (203 B) | 1,681,480 lamports | base: `game_authority` · boost: booster คนแรกของ asset · คืนตอน `close_*_asset` |
+| vault (token account) | 1,488,440 (SPL Token 165 B) · 1,513,840 (Token-2022 170 B) | เหมือน `PoolAsset` |
+| `BoostReceipt` (162 B) | 1,473,200 lamports | booster · คืนตอน refund / `close_receipt` |
+| **รวมของเกมต่อ match** | ไม่มี base 8,676,640 · base SOL 10,358,120 (≈ 0.0104) · base token ≤ 11,871,960 (≈ 0.0119) | `game_authority` (ไม่รวมยอด base) |
 | platform fee | 1% ของ boost (snapshot ตอนเปิด · ≤ 20%) · NFT ไม่หัก · base ไม่หัก | เข้า Treasury |
-| CU (LiteSVM) | `open_pool_sol` ผ่านเกม ≈ 34.5k · `settle` ผ่านเกม ≈ 18.9k · `boost_token` ≈ 35.9k · `claim_token` ≈ 14.4k · `claim_sol` ≈ 4.5k | — |
+| CU (LiteSVM) | `open_pool_sol` ผ่านเกม ≈ 34.5k · `settle` ผ่านเกม ≈ 20.4k · `boost_sol` ≈ 18.5k · `boost_token` ≈ 44.9k · `claim_token` ≈ 12.9k · `claim_sol` ≈ 4.5k — ตั้ง CU limit เผื่อไว้ | — |
 
 ตัวเลข rent ใน LiteSVM สูงกว่า devnet (อัตราเก่า) — คำนวณงบด้วยค่าจาก cluster จริง
 
@@ -316,6 +348,5 @@ solana program dump -u devnet HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW tests
 ## 9. เวอร์ชัน · ติดต่อ
 
 - IDL มี version (`metadata.version`) · การเปลี่ยน layout / seed / error = version ใหม่ + ประกาศ · error / enum / seed เป็น append-only
-- upgrade program → relayer จะตอบ 503 `program_changed` จนกว่า deploy slot ใหม่ถูกอัปเดต (แจ้ง solana-poc)
-- ยังไม่มี: Random reward, Game Reward Vault (R17) · NFT แบบ Metaplex Core / compressed (รอ allowlist ชนิดใหม่ของ platform-core)
-- คำถาม / ขอเปลี่ยน interface: Arra thread `channel:rewards-pool` (#2) หรือ `<internal-note>` ของ `maintainer`
+- ยังไม่มี: Random reward, Game Reward Vault · NFT แบบ Metaplex Core / compressed
+- คำถาม / ขอเปลี่ยน interface: เปิด issue ที่ `github.com/solana-games-hub/rewards-pool` หรือติดต่อ Admin ของ platform
