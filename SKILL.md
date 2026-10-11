@@ -7,7 +7,7 @@ description: วิธีต่อเกม (Anchor program) เข้ากั�
 
 > program ที่ deploy บน **devnet** แล้ว — เกมของคุณ CPI เข้ามาได้เลย ไม่ต้อง deploy rewards-pool เอง
 > ที่มา: [`specs/spec-v2.md`](specs/spec-v2.md) (สัญญาเต็ม) · [`idls/rewards_pool.json`](idls/rewards_pool.json) · ตัวอย่างเกมที่รันจริง: [`tests/mock-game/src/lib.rs`](tests/mock-game/src/lib.rs) · มติ: `../DECISIONS.md` (R1–R33)
-> ⚠️ ผ่าน test (LiteSVM 41/41) + AI review แล้ว แต่**ยังไม่มี audit ภายนอก** — devnet เท่านั้น
+> ⚠️ devnet เท่านั้น
 
 ---
 

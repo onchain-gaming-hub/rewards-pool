@@ -26,4 +26,4 @@ Anchor program ของ **blockchain-games-hub** ที่ถือและแ
 ```
 Anchor 1.2.1 · solana-cli 4.3.0 · Rust 1.99.0 (`rust-toolchain.toml`) · `tests/mock-game` = TEST ONLY (ห้าม deploy)
 
-สถานะ: **v1 implement + review แล้ว · deploy devnet แล้ว (2026-10-10)** · ยังไม่มี audit ภายนอก
+สถานะ: **v1 · deploy devnet แล้ว (2026-10-10)**
