@@ -349,4 +349,4 @@ solana program dump -u devnet HgApfwjAg1L2FJL3fX7A4WX5yfhrVV8k9Ahii5Pn8HVW tests
 
 - The IDL is versioned (`metadata.version`) · changes to layout / seeds / errors = new version + announcement · errors / enums / seeds are append-only
 - Not yet available: random rewards, Game Reward Vault · Metaplex Core / compressed NFTs
-- Questions / interface change requests: open an issue at `github.com/solana-games-hub/rewards-pool` or contact the platform Admin
+- Questions / interface change requests: open an issue at `github.com/onchain-gaming-hub/rewards-pool` or contact the platform Admin
