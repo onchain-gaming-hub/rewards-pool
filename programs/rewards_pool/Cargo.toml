@@ -2,6 +2,7 @@
 name = "rewards_pool"
 version = "1.0.0"
 description = "rewards-pool — per-match prize pools for blockchain-games-hub (specs/spec-v2.md)"
+license = "MIT"
 edition.workspace = true
 rust-version.workspace = true
 
